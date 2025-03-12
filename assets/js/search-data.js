@@ -30,6 +30,13 @@ ninja.data = [{
           handler: () => {
             window.location.href = "/assets/pdf/GeorgeBrooks_CV.pdf";
           },
+        },{id: "nav-games",
+          title: "games",
+          description: "",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/games/";
+          },
         },{id: "post-a-post-with-image-galleries",
       
         title: "a post with image galleries",
