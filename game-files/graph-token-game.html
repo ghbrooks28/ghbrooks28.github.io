@@ -218,8 +218,10 @@
       <div id="highScores" class="high-scores" style="display: none">
         <h2>High Scores</h2>
         <div class="score-tabs">
-          <button class="score-tab active" data-difficulty="easy">Easy</button>
-          <button class="score-tab" data-difficulty="medium">Medium</button>
+          <button class="score-tab" data-difficulty="easy">Easy</button>
+          <button class="score-tab active" data-difficulty="medium">
+            Medium
+          </button>
           <button class="score-tab" data-difficulty="hard">Hard</button>
           <button class="score-tab" data-difficulty="extreme">Extreme</button>
         </div>
@@ -754,7 +756,7 @@
             // Show the high scores panel
             document.getElementById("highScores").style.display = "block";
 
-            // Show the default tab (easy)
+            // Show the default tab (medium)
             showScoresForDifficulty("medium");
           });
 
