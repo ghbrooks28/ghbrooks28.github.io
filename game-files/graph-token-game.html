@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Token Distributor</title>
+    <title>tokenFlow</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -201,7 +201,7 @@
   </head>
   <body>
     <div class="game-container">
-      <h1>Token Distributor</h1>
+      <h1>tokenFlow</h1>
 
       <div class="game-setup">
         <label for="difficultySelect">Difficulty: </label>
@@ -209,6 +209,7 @@
           <option value="easy">Easy (4-6 vertices)</option>
           <option value="medium" selected>Medium (7-9 vertices)</option>
           <option value="hard">Hard (10-12 vertices)</option>
+          <option value="extreme">Extreme (13-15 vertices)</option>
         </select>
         <button id="newGameBtn">New Game</button>
         <button id="showScoresBtn">Show High Scores</button>
@@ -220,6 +221,7 @@
           <button class="score-tab active" data-difficulty="easy">Easy</button>
           <button class="score-tab" data-difficulty="medium">Medium</button>
           <button class="score-tab" data-difficulty="hard">Hard</button>
+          <button class="score-tab" data-difficulty="extreme">Extreme</button>
         </div>
         <div class="score-content">
           <table id="scoreTable">
@@ -228,7 +230,7 @@
                 <th>Rank</th>
                 <th>Name</th>
                 <th>Score</th>
-                <th>Moves</th>
+                <th>Turns</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -241,22 +243,24 @@
       </div>
 
       <div class="game-info">
+        &emsp;
         <div>
           <label>Your Tokens</label>
           <span id="playerTokens">0</span>
         </div>
-        <div>
+        <!-- <div>
           <label>Current Vertex</label>
           <span id="currentVertex">0</span>
-        </div>
+        </div> -->
         <div>
           <label>Tokens Here</label>
           <span id="vertexTokens">0</span>
         </div>
         <div>
-          <label>Moves</label>
+          <label>Turns</label>
           <span id="moveCount">0</span>
         </div>
+        &emsp;
       </div>
 
       <div class="canvas-container">
@@ -278,8 +282,7 @@
 
       <div id="winMessage" class="win-message">
         Congratulations! All vertices have equal tokens.
-        <br />Your score: <span id="finalScore">0</span> (tokens on graph - move
-        penalty)
+        <br />Your score: <span id="finalScore">0</span>
         <div class="save-score" style="margin-top: 15px">
           <input
             type="text"
@@ -293,19 +296,21 @@
 
       <div class="rules">
         <h2>Rules</h2>
-        <p>1. <strong>Pick up tokens</strong> from the vertex you are at</p>
+        On your turn you may:
         <p>
-          2. <strong>Move along an edge</strong> by paying one token (free if
-          bank is empty) from your bank
+          1. <strong>Pick up tokens</strong> from the vertex where you are
+          located.
+        </p>
+        <p>
+          2. <strong>Move along an edge</strong> by paying one token. Movement
+          is free if your bank is empty.
         </p>
         <p>
           3. <strong>Drop any number of tokens</strong> on the vertex where you
-          are located
+          are located.
         </p>
         <p>
           The game is over when all vertices have the same number of tokens.
-          Your score is the total number of tokens on the graph minus the floor
-          of the number of moves divided by ten.
         </p>
       </div>
     </div>
@@ -407,6 +412,9 @@
               break;
             case "hard":
               vertexCount = Math.floor(Math.random() * 3) + 10; // 10-12 vertices
+              break;
+            case "extreme":
+              vertexCount = Math.floor(Math.random() * 3) + 13; // 13-15 vertices
               break;
             case "medium":
             default:
@@ -513,7 +521,7 @@
             this.ctx.fillText(vertex.tokens, vertex.x, vertex.y);
 
             // Draw vertex ID below with transparency
-            this.ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.0)";
             this.ctx.font = "12px sans-serif";
             this.ctx.textAlign = "center";
             this.ctx.textBaseline = "middle";
@@ -614,8 +622,8 @@
         updateInfo() {
           document.getElementById("playerTokens").textContent =
             this.playerTokens;
-          document.getElementById("currentVertex").textContent =
-            this.playerPosition;
+          // document.getElementById("currentVertex").textContent =
+          //   this.playerPosition;
 
           const currentVertex = this.graph.getVertexById(this.playerPosition);
           document.getElementById("vertexTokens").textContent = currentVertex
@@ -652,7 +660,11 @@
             this.gameOver = true;
             const totalTokens = this.graph.getAllTokenCount();
             const movePenalty = Math.floor(this.moveCount / 10);
-            const finalScore = Math.max(0, totalTokens - movePenalty);
+            const numEdges = this.graph.edges.length;
+            const finalScore = Math.max(
+              0,
+              Math.floor((1000 * (totalTokens - movePenalty)) / (2 * numEdges)),
+            );
 
             document.getElementById("finalScore").textContent = finalScore;
             document.getElementById("winMessage").style.display = "block";
@@ -668,6 +680,7 @@
             easy: [],
             medium: [],
             hard: [],
+            extreme: [],
           };
           this.loadScores();
         }
