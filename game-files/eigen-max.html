@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eigenMax</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f7fa;
+        color: #333;
+      }
+      .game-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .controls-panel {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .graph-display {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        height: 600px;
+        position: relative;
+      }
+      .info-panel {
+        display: flex;
+        gap: 20px;
+      }
+      .game-stats,
+      .high-scores {
+        flex: 1;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2,
+      h3 {
+        color: #2c3e50;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      select,
+      input {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .node {
+        cursor: pointer;
+      }
+      .instructions {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .mode-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .timer {
+        font-size: 24px;
+        font-weight: bold;
+        color: #e74c3c;
+      }
+      .game-over-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        place-items: center;
+      }
+      .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 500px;
+        text-align: center;
+      }
+      .eigenvector-value {
+        position: absolute;
+        font-size: 8px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 2px 5px;
+        border-radius: 3px;
+        pointer-events: none;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .edge-menu {
+        position: absolute;
+        background-color: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>eigenMax</h1>
+
+    <div class="instructions">
+      <h3>How to Play</h3>
+      <p>
+        Optimize the kth largest eigenvalue (λₖ) of the graph's adjacency
+        matrix. You have 20 turns or a limited time to maximize the value.
+      </p>
+      <ul>
+        <li>
+          Click on a node to select it, then click on another node to add or
+          remove an edge.
+        </li>
+        <li>The graph must remain connected at all times.</li>
+        <li>
+          Each eigenvector entry is displayed at its corresponding vertex.
+        </li>
+        <li>
+          Your score is based on how much you improve the target eigenvalue from
+          its initial value.
+        </li>
+      </ul>
+    </div>
+
+    <div class="game-container">
+      <div class="controls-panel">
+        <label for="game-settings">Settings:</label>
+        <select id="difficulty-select">
+          <option value="Easy">Easy (6 vertices)</option>
+          <option value="Medium" selected>Medium (10 vertices)</option>
+          <option value="Hard">Hard (15 vertices)</option>
+          <option value="Extreme">Extreme (20 vertices)</option>
+        </select>
+        <select id="lambda-select">
+          <option value="lam_1" selected>λ<sub>1</sub></option>
+          <option value="lam_2">λ<sub>2</sub></option>
+          <option value="lam_3">λ<sub>3</sub></option>
+          <option value="lam_4">λ<sub>4</sub></option>
+        </select>
+        <div class="mode-toggle">
+          <label for="game-mode">Game Mode:</label>
+          <select id="game-mode">
+            <option value="turns">Turns (20)</option>
+            <option value="time">Timed (3 minutes)</option>
+          </select>
+        </div>
+
+        <button id="start-game" aria-label="Start New Game">
+          Start New Game
+        </button>
+        <button id="show-high-scores" aria-label="Show High Scores">
+          High Scores
+        </button>
+        <button id="end-game" aria-label="End Game">End Game</button>
+
+        <div id="timer-display" style="display: none">
+          Time: <span class="timer" id="timer">3:00</span>
+        </div>
+      </div>
+
+      <div class="graph-display" id="graph-display">
+        <div id="graph-svg"></div>
+        <div id="edge-menu" class="edge-menu">
+          <button id="delete-edge">Delete Edge</button>
+        </div>
+      </div>
+
+      <div class="info-panel">
+        <div class="game-stats">
+          <h3>Game Stats</h3>
+          <p>Difficulty: <span id="display-difficulty">Medium</span></p>
+          <p>
+            Target: λ<sub><span id="target-eigenvalue-index">0</span></sub>
+          </p>
+          <p>Initial Value: <span id="initial-eigenvalue">0.00</span></p>
+          <p>Current Value: <span id="current-eigenvalue">0.00</span></p>
+          <p>Improvement: <span id="improvement">0.00</span></p>
+          <p>Turns Left: <span id="turns-left">20</span></p>
+
+          <!-- <div class="action-buttons">
+            <button id="undo-move">Undo Last Move</button>
+            <button id="reset-game">Reset</button>
+          </div> -->
+        </div>
+
+        <div class="high-scores">
+          <h3>High Scores (<span id="score-difficulty">Medium</span>)</h3>
+          <ul id="high-scores-list">
+            <li>No scores yet</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-over-modal" id="game-over-modal">
+      <div class="modal-content">
+        <h2>Game Over!</h2>
+        <p>Your score: <span id="final-score">0.00</span></p>
+        <p>
+          You improved λ<sub><span id="final-eigenvalue-index">0</span></sub>
+          from <span id="start-eigenvalue">0.00</span> to
+          <span id="end-eigenvalue">0.00</span>
+        </p>
+
+        <div id="high-score-form" style="margin-top: 20px">
+          <p>You made the high score list!</p>
+          <input
+            type="text"
+            id="player-name"
+            placeholder="Enter your name"
+            maxlength="20"
+          />
+          <button id="submit-score">Submit Score</button>
+        </div>
+
+        <button id="play-again" style="margin-top: 20px">Play Again</button>
+      </div>
+    </div>
+
+    <!-- Load required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+
+    <script>
+      // EigenTree Game - Core Game Logic
+      class EigenTreeGame {
+        constructor(
+          difficulty = "Medium",
+          gameMode = "turns",
+          lambda = "lam_1",
+        ) {
+          this.difficulty = difficulty;
+          this.lambda = lambda;
+          this.gameMode = gameMode;
+          this.turns = 20;
+          this.turnsLeft = this.turns;
+          this.timeLimit = 3 * 60; // 3 minutes in seconds
+          this.timeRemaining = this.timeLimit;
+          this.timerInterval = null;
+          this.highScores = this.loadHighScores();
+          this.targetEigenIndex = 0; // Will be set based on difficulty
+          this.graph = null;
+          this.initialValue = 0;
+          this.currentValue = 0;
+          this.selectedNode = null;
+          this.actionHistory = [];
+          this.eigenVectors = [];
+          this.isGameOver = false;
+          // this.timeBlock = false;
+
+          // Event listeners
+          this.onUpdate = () => {};
+          this.onGameOver = () => {};
+        }
+
+        initializeGame() {
+          // Reset game state
+          this.turnsLeft = this.turns;
+          this.timeRemaining = this.timeLimit;
+          this.selectedNode = null;
+          this.actionHistory = [];
+          this.isGameOver = false;
+          // this.timeBlock = false;
+
+          // this.endGameButton.disabled = false;
+          // this.resetButton.disabled = false;
+          // this.undoButton.disabled = false;
+
+          // Generate initial tree based on difficulty
+          const nodeCount = this.getNodeCountForDifficulty();
+          this.graph = this.generateRandomTree(nodeCount);
+
+          // Select target eigenvalue based on difficulty
+          this.targetEigenIndex = this.getTargetEigenIndexForDifficulty();
+
+          // Calculate initial eigenvalues and eigenvectors
+          const result = this.calculateEigenvaluesAndEigenvectors();
+          this.initialValue = result.eigenvalues[this.targetEigenIndex];
+          this.currentValue = this.initialValue;
+          this.eigenVectors = result.eigenvectors;
+
+          // Start timer if in time mode
+          if (this.gameMode === "time") {
+            this.startTimer();
+          }
+
+          // Notify UI
+          this.notifyUpdate();
+        }
+
+        getNodeCountForDifficulty() {
+          switch (this.difficulty) {
+            case "Easy":
+              return 6;
+            case "Medium":
+              return 10;
+            case "Hard":
+              return 15;
+            case "Extreme":
+              return 20;
+            default:
+              return 10;
+          }
+        }
+
+        getTargetEigenIndexForDifficulty() {
+          switch (this.lambda) {
+            case "lam_1":
+              return 0; // Largest eigenvalue
+            case "lam_2":
+              return 1;
+            case "lam_3":
+              return 2;
+            case "lam_4":
+              return 3;
+            case "lam_5":
+              return 4;
+            case "lam_6":
+              return 5;
+            default:
+              return 0;
+          }
+        }
+
+        generateRandomTree(nodeCount) {
+          // Create nodes
+          const nodes = Array.from({ length: nodeCount }, (_, i) => ({
+            id: i,
+            label: `${i}`,
+            x: Math.random() * 400 + 50,
+            y: Math.random() * 400 + 50,
+          }));
+
+          // Create edges using a randomized spanning tree approach
+          const edges = [];
+          const connected = new Set([0]); // Start with node 0
+          const unconnected = new Set(
+            nodes.map((n) => n.id).filter((id) => id !== 0),
+          );
+
+          // Connect all nodes to form a tree
+          while (unconnected.size > 0) {
+            // Pick a random connected node
+            const connectedArray = Array.from(connected);
+            const sourceIndex = Math.floor(
+              Math.random() * connectedArray.length,
+            );
+            const source = connectedArray[sourceIndex];
+
+            // Pick a random unconnected node
+            const unconnectedArray = Array.from(unconnected);
+            const targetIndex = Math.floor(
+              Math.random() * unconnectedArray.length,
+            );
+            const target = unconnectedArray[targetIndex];
+
+            // Add edge
+            edges.push({ source, target });
+
+            // Update sets
+            connected.add(target);
+            unconnected.delete(target);
+          }
+
+          return { nodes, edges };
+        }
+
+        calculateAdjacencyMatrix() {
+          const n = this.graph.nodes.length;
+          const matrix = Array(n)
+            .fill()
+            .map(() => Array(n).fill(0));
+
+          // Fill adjacency matrix based on edges
+          this.graph.edges.forEach((edge) => {
+            matrix[edge.source][edge.target] = 1;
+            matrix[edge.target][edge.source] = 1; // Undirected graph
+          });
+
+          return matrix;
+        }
+
+        calculateEigenvaluesAndEigenvectors() {
+          const adjacencyMatrix = this.calculateAdjacencyMatrix();
+
+          try {
+            // Using numeric.js for eigenvalue calculation
+            const result = numeric.eig(adjacencyMatrix);
+
+            // Extract real parts of eigenvalues and sort them
+            const eigenvalues = result.lambda.x;
+            const eigenvectors = result.E.x;
+
+            // Sort eigenvalues and corresponding eigenvectors in descending order
+            const indices = eigenvalues.map((_, i) => i);
+            indices.sort((a, b) => eigenvalues[b] - eigenvalues[a]);
+
+            const sortedEigenvalues = indices.map((i) => eigenvalues[i]);
+            const sortedEigenvectors = indices.map((i) => {
+              return this.graph.nodes.map((_, j) => {
+                let value = eigenvectors[j][i];
+                if (this.targetEigenIndex === 0) {
+                  value = Math.abs(value); // Ensure positive values for targetEigenIndex 0
+                }
+                // Round to 2 decimal places for display
+                return Math.round(value * 100) / 100;
+              });
+            });
+
+            return {
+              eigenvalues: sortedEigenvalues,
+              eigenvectors: sortedEigenvectors,
+            };
+          } catch (e) {
+            console.error("Error calculating eigenvalues:", e);
+            // Fallback to a simplified approach if numeric.js fails
+            return this.simulateEigenvaluesAndEigenvectors();
+          }
+        }
+
+        simulateEigenvaluesAndEigenvectors() {
+          // Fallback method if numeric.js fails
+          const n = this.graph.nodes.length;
+          const eigenvalues = [];
+          const eigenvectors = [];
+
+          // Generate simulated eigenvalues
+          let largestEigenvalue = Math.sqrt(n) + Math.random();
+          for (let i = 0; i < n; i++) {
+            eigenvalues.push(
+              largestEigenvalue * (1 - i / n) + Math.random() * 0.5 - 0.25,
+            );
+          }
+          eigenvalues.sort((a, b) => b - a);
+
+          // Generate simulated eigenvectors
+          for (let i = 0; i < n; i++) {
+            const vector = [];
+            for (let j = 0; j < n; j++) {
+              // Create random entries that are normalized
+              vector.push(Math.round((Math.random() * 2 - 1) * 100) / 100);
+            }
+            eigenvectors.push(vector);
+          }
+
+          return { eigenvalues, eigenvectors };
+        }
+
+        toggleEdge(sourceNodeId, targetNodeId) {
+          // Check if game is over
+          if (this.isGameOver) return false;
+
+          // Check if nodes exist
+          if (
+            sourceNodeId === targetNodeId ||
+            sourceNodeId >= this.graph.nodes.length ||
+            targetNodeId >= this.graph.nodes.length
+          ) {
+            return false;
+          }
+
+          // Check if edge exists
+          const edgeIndex = this.graph.edges.findIndex(
+            (e) =>
+              (e.source === sourceNodeId && e.target === targetNodeId) ||
+              (e.source === targetNodeId && e.target === sourceNodeId),
+          );
+
+          // Save previous state for undo
+          const previousState = {
+            edges: [...this.graph.edges],
+            currentValue: this.currentValue,
+            eigenVectors: [...this.eigenVectors],
+          };
+
+          let success = false;
+
+          if (edgeIndex === -1) {
+            // Add edge
+            this.graph.edges.push({
+              source: sourceNodeId,
+              target: targetNodeId,
+            });
+            success = true;
+          } else {
+            // Remove edge - check if it would disconnect the graph
+            if (this.wouldDisconnectGraph(sourceNodeId, targetNodeId)) {
+              return false;
+            }
+
+            // Remove edge
+            this.graph.edges.splice(edgeIndex, 1);
+            success = true;
+          }
+
+          if (success) {
+            // Save action for undo
+            this.actionHistory.push(previousState);
+
+            // Process turn
+            this.processTurn();
+          }
+
+          return success;
+        }
+
+        wouldDisconnectGraph(sourceNodeId, targetNodeId) {
+          // Create a copy of edges excluding the one we want to remove
+          const edgesCopy = this.graph.edges.filter(
+            (e) =>
+              !(
+                (e.source === sourceNodeId && e.target === targetNodeId) ||
+                (e.source === targetNodeId && e.target === sourceNodeId)
+              ),
+          );
+
+          // Create adjacency list
+          const n = this.graph.nodes.length;
+          const adjList = Array(n)
+            .fill()
+            .map(() => []);
+
+          edgesCopy.forEach((edge) => {
+            const source =
+              typeof edge.source === "object" ? edge.source.id : edge.source;
+            const target =
+              typeof edge.target === "object" ? edge.target.id : edge.target;
+            adjList[source].push(target);
+            adjList[target].push(source);
+          });
+
+          // BFS to check connectivity
+          const visited = Array(n).fill(false);
+          const queue = [0]; // Start from node 0
+          visited[0] = true;
+
+          while (queue.length > 0) {
+            const node = queue.shift();
+
+            adjList[node].forEach((neighbor) => {
+              if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                queue.push(neighbor);
+              }
+            });
+          }
+
+          // If ANY node is not visited, the graph would be disconnected
+          return visited.some((v) => v === false);
+        }
+        undoLastMove() {
+          if (this.actionHistory.length === 0) return false;
+
+          // Get last state
+          const lastState = this.actionHistory.pop();
+
+          // Restore state
+          this.graph.edges = lastState.edges;
+          this.currentValue = lastState.currentValue;
+          this.eigenVectors = lastState.eigenVectors;
+
+          // Restore turn/time
+          if (this.gameMode === "turns") {
+            this.turnsLeft++;
+          }
+
+          // Notify UI
+          this.notifyUpdate();
+
+          return true;
+        }
+
+        processTurn() {
+          // Decrement turns if in turns mode
+          if (this.gameMode === "turns") {
+            this.turnsLeft--;
+          }
+
+          // Recalculate eigenvalues and eigenvectors
+          const result = this.calculateEigenvaluesAndEigenvectors();
+          this.currentValue = result.eigenvalues[this.targetEigenIndex];
+          this.eigenVectors = result.eigenvectors;
+
+          // Notify UI of update
+          this.notifyUpdate();
+
+          // Check if game is over
+          if (
+            (this.gameMode === "turns" && this.turnsLeft <= 0) ||
+            (this.gameMode === "time" && this.timeRemaining <= 0)
+          ) {
+            this.endGame();
+          }
+        }
+
+        startTimer() {
+          // Clear any existing timer
+          if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+          }
+
+          this.timerInterval = setInterval(() => {
+            this.timeRemaining--;
+            this.notifyUpdate(false);
+
+            if (this.timeRemaining <= 0) {
+              clearInterval(this.timerInterval);
+              this.endGame();
+            }
+          }, 1000);
+        }
+
+        stopTimer() {
+          if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+          }
+        }
+
+        notifyUpdate(updateGraph = true) {
+          if (typeof this.onUpdate === "function") {
+            this.onUpdate(updateGraph);
+          }
+        }
+
+        endGame() {
+          if (this.isGameOver) return;
+
+          this.isGameOver = true;
+          this.stopTimer();
+
+          const score = this.calculateScore();
+
+          if (typeof this.onGameOver === "function") {
+            this.onGameOver(score);
+          }
+        }
+
+        calculateScore() {
+          // Score is based on the relative improvement of the eigenvalue
+          const improvement = this.currentValue - this.initialValue;
+
+          // Scale score based on difficulty
+          let difficultyMultiplier;
+          switch (this.difficulty) {
+            case "Easy":
+              difficultyMultiplier = 1;
+              break;
+            case "Medium":
+              difficultyMultiplier = 2;
+              break;
+            case "Hard":
+              difficultyMultiplier = 3;
+              break;
+            case "Extreme":
+              difficultyMultiplier = 5;
+              break;
+            default:
+              difficultyMultiplier = 1;
+          }
+
+          return improvement * 100 * difficultyMultiplier;
+        }
+
+        updateHighScores(playerName, score) {
+          // Ensure scores array exists
+          if (!Array.isArray(this.highScores[this.difficulty])) {
+            this.highScores[this.difficulty] = [];
+          }
+
+          // Add new score
+          this.highScores[this.difficulty].push({
+            name: playerName,
+            score: score,
+            date: new Date().toISOString(),
+            targetEigenIndex: this.targetEigenIndex + 1, // Include targetEigenIndex
+            gameMode: this.gameMode, // Include gameMode
+          });
+
+          // Sort and limit to top 10
+          this.highScores[this.difficulty].sort((a, b) => b.score - a.score);
+          this.highScores[this.difficulty] = this.highScores[
+            this.difficulty
+          ].slice(0, 10);
+
+          // Save to localStorage
+          this.saveHighScores();
+
+          return this.highScores[this.difficulty];
+        }
+
+        loadHighScores() {
+          try {
+            const savedScores = localStorage.getItem("eigenTreeHighScores");
+            if (savedScores) {
+              return JSON.parse(savedScores);
+            }
+          } catch (e) {
+            console.error("Error loading high scores:", e);
+          }
+
+          // Ensure the structure always has empty arrays for each difficulty level
+          return {
+            Easy: [],
+            Medium: [],
+            Hard: [],
+            Extreme: [],
+          };
+        }
+
+        saveHighScores() {
+          try {
+            localStorage.setItem(
+              "eigenTreeHighScores",
+              JSON.stringify(this.highScores),
+            );
+          } catch (e) {
+            console.error("Error saving high scores:", e);
+          }
+        }
+
+        getHighScores() {
+          return this.highScores[this.difficulty];
+        }
+
+        isHighScore(score) {
+          const scores = this.highScores[this.difficulty] || []; // Default to an empty array
+          return scores.length < 10 || score > scores[scores.length - 1].score;
+        }
+
+        reset() {
+          this.stopTimer();
+          this.initializeGame();
+        }
+      }
+
+      // UI Controller
+      class GameUI {
+        constructor() {
+          // Game instance
+          this.game = null;
+
+          // DOM elements
+          this.difficultySelect = document.getElementById("difficulty-select");
+          this.lambdaSelect = document.getElementById("lambda-select");
+          this.gameModeSelect = document.getElementById("game-mode");
+          this.startButton = document.getElementById("start-game");
+          this.showHighScoresButton =
+            document.getElementById("show-high-scores");
+          // this.resetButton = document.getElementById("reset-game");
+          // this.undoButton = document.getElementById("undo-move");
+          this.timerDisplay = document.getElementById("timer-display");
+          this.timerElement = document.getElementById("timer");
+          this.graphDisplay = document.getElementById("graph-display");
+          this.edgeMenu = document.getElementById("edge-menu");
+          this.deleteEdgeButton = document.getElementById("delete-edge");
+          this.endGameButton = document.getElementById("end-game");
+
+          // Game stats display
+          this.displayDifficulty =
+            document.getElementById("display-difficulty");
+          this.targetEigenvalueIndex = document.getElementById(
+            "target-eigenvalue-index",
+          );
+          this.initialEigenvalue =
+            document.getElementById("initial-eigenvalue");
+          this.currentEigenvalue =
+            document.getElementById("current-eigenvalue");
+          this.improvement = document.getElementById("improvement");
+          this.turnsLeft = document.getElementById("turns-left");
+
+          // High scores display
+          this.scoreDifficulty = document.getElementById("score-difficulty");
+          this.highScoresList = document.getElementById("high-scores-list");
+
+          // Game over modal
+          this.gameOverModal = document.getElementById("game-over-modal");
+          this.finalScore = document.getElementById("final-score");
+          this.finalEigenvalueIndex = document.getElementById(
+            "final-eigenvalue-index",
+          );
+          this.startEigenvalue = document.getElementById("start-eigenvalue");
+          this.endEigenvalue = document.getElementById("end-eigenvalue");
+          this.highScoreForm = document.getElementById("high-score-form");
+          this.playerNameInput = document.getElementById("player-name");
+          this.submitScoreButton = document.getElementById("submit-score");
+          this.playAgainButton = document.getElementById("play-again");
+
+          // D3 visualization
+          this.svg = null;
+          this.simulation = null;
+          this.nodes = [];
+          this.links = [];
+          this.nodeElements = null;
+          this.linkElements = null;
+          this.eigenvectorLabels = null;
+
+          // UI state
+          this.selectedNode = null;
+          this.clickedEdge = null;
+
+          // Initialize
+          this.initializeEventListeners();
+        }
+
+        initializeEventListeners() {
+          // Enable game controls
+          // this.resetButton.disabled = false;
+          this.endGameButton.disabled = false;
+          this.endGameButton.style.cursor = "pointer";
+
+          // Start game button
+          this.startButton.addEventListener("click", () => {
+            this.startButton.disabled = true;
+            this.startNewGame();
+            this.startButton.disabled = false;
+          });
+
+          // Show high scores button
+          this.showHighScoresButton.addEventListener("click", () => {
+            this.updateHighScoresDisplay();
+          });
+
+          // Reset game button
+          // this.resetButton.addEventListener("click", () => {
+          //   if (confirm("Are you sure you want to reset the game?")) {
+          //     this.game.reset();
+          //   }
+          // });
+
+          // Undo move button
+          // this.undoButton.addEventListener("click", () => {
+          //   this.game.undoLastMove();
+          // });
+
+          // if (this.endGameButton.disabled == false)
+          //   throw new Error("End Game button not found in DOM");
+
+          this.endGameButton.addEventListener("click", () => {
+            if (this.game && !this.game.isGameOver) {
+              // Ensure game exists
+              if (confirm("Are you sure you want to end the game?")) {
+                this.game.endGame();
+              }
+            }
+          });
+
+          // Game mode selection
+          this.gameModeSelect.addEventListener("change", () => {
+            const mode = this.gameModeSelect.value;
+            this.timerDisplay.style.display =
+              mode === "time" ? "block" : "none";
+            if (this.game) {
+              this.game.gameMode = mode;
+              if (mode === "time") {
+                this.game.startTimer();
+              } else {
+                this.game.stopTimer();
+              }
+            }
+          });
+
+          // Submit high score button
+          this.submitScoreButton.addEventListener("click", () => {
+            const playerName = this.playerNameInput.value.trim() || "Anonymous";
+            const score = parseFloat(this.finalScore.textContent);
+            this.game.updateHighScores(playerName, score);
+            this.updateHighScoresDisplay();
+            this.highScoreForm.style.display = "none";
+          });
+
+          // Play again button
+          this.playAgainButton.addEventListener("click", () => {
+            this.closeGameOverModal();
+            this.startNewGame();
+          });
+
+          // Delete edge button
+          this.deleteEdgeButton.addEventListener("click", () => {
+            try {
+              if (this.clickedEdge) {
+                this.game.toggleEdge(
+                  this.clickedEdge.source.id,
+                  this.clickedEdge.target.id,
+                );
+                this.hideEdgeMenu();
+              }
+            } catch (error) {
+              console.error("Error deleting edge:", error);
+              alert(
+                "An error occurred while deleting the edge. Please try again.",
+              );
+            }
+          });
+
+          // Improve keyboard navigation
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+              this.deselectNode();
+              this.hideEdgeMenu();
+            }
+          });
+        }
+
+        startNewGame() {
+          // Get selected difficulty and mode
+          const difficulty = this.difficultySelect.value;
+          const lambda = this.lambdaSelect.value;
+          const gameMode = this.gameModeSelect.value;
+
+          // Initialize game
+          this.game = new EigenTreeGame(difficulty, gameMode, lambda);
+
+          // Set up event handlers
+          this.game.onUpdate = (updategraph) => this.updateGameUI(updategraph);
+          this.game.onGameOver = (score) => this.showGameOver(score);
+
+          // Initialize the game
+          this.game.initializeGame();
+
+          // Initialize D3 visualization
+          this.initializeVisualization();
+
+          // Update UI
+          this.updateGameUI();
+          this.updateHighScoresDisplay();
+        }
+
+        updateGameUI(updateGraph = true) {
+          if (!this.game) return;
+
+          // Update game stats
+          this.displayDifficulty.textContent = this.game.difficulty;
+          this.targetEigenvalueIndex.textContent =
+            this.game.targetEigenIndex + 1;
+          this.initialEigenvalue.textContent =
+            this.game.initialValue.toFixed(4);
+          this.currentEigenvalue.textContent =
+            this.game.currentValue.toFixed(4);
+          this.improvement.textContent = (
+            this.game.currentValue - this.game.initialValue
+          ).toFixed(4);
+
+          // Update mode-specific UI
+          if (this.game.gameMode === "turns") {
+            this.turnsLeft.textContent = this.game.turnsLeft;
+          } else {
+            // Update timer display
+            const minutes = Math.floor(this.game.timeRemaining / 60);
+            const seconds = this.game.timeRemaining % 60;
+            this.timerElement.textContent = `${minutes}:${seconds
+              .toString()
+              .padStart(2, "0")}`;
+          }
+
+          // Update undo button
+          // this.undoButton.disabled = this.game.actionHistory.length === 0;
+
+          // Update visualization
+          if (updateGraph) {
+            this.updateVisualization();
+          }
+        }
+
+        initializeVisualization() {
+          // Clear previous visualization
+          d3.select("#graph-svg").selectAll("*").remove();
+
+          // Get the dimensions of the .graph-display element
+          const graphDisplayWidth =
+            document.querySelector(".graph-display").clientWidth - 40;
+          const graphDisplayHeight =
+            document.querySelector(".graph-display").clientHeight - 40;
+
+          // Create SVG element with dynamic width and height
+          this.svg = d3
+            .select("#graph-svg")
+            .append("svg")
+            .attr("width", graphDisplayWidth)
+            .attr("height", graphDisplayHeight)
+            .attr("viewBox", `0 0 ${graphDisplayWidth} ${graphDisplayHeight}`)
+            .call(
+              d3.zoom().on("zoom", (event) => {
+                this.svg.attr("transform", event.transform);
+              }),
+            )
+            .append("g");
+
+          // Create D3 force simulation
+          this.simulation = d3
+            .forceSimulation()
+            .force(
+              "link",
+              d3
+                .forceLink()
+                .id((d) => d.id)
+                .distance(50),
+            )
+            .force("charge", d3.forceManyBody().strength(-100))
+            .force(
+              "center",
+              d3.forceCenter(graphDisplayWidth / 2, graphDisplayHeight / 2),
+            ) // Center the simulation
+            .force("collision", d3.forceCollide().radius(35));
+
+          // Initial draw
+          this.updateVisualization();
+
+          // Handle clicks on SVG background (deselect nodes)
+          this.svg.on("click", (event) => {
+            if (event.target.tagName === "svg") {
+              this.deselectNode();
+              this.hideEdgeMenu();
+            }
+          });
+        }
+
+        updateVisualization() {
+          if (!this.game || !this.svg) return;
+
+          // Convert game graph to D3 format
+          this.nodes = this.game.graph.nodes.map((node) => ({ ...node }));
+          this.links = this.game.graph.edges.map((edge) => ({
+            source: edge.source,
+            target: edge.target,
+          }));
+
+          // Create links
+          this.linkElements = this.svg
+            .selectAll(".link")
+            .data(this.links)
+            .join(
+              (enter) =>
+                enter
+                  .append("line")
+                  .attr("class", "link")
+                  .attr("stroke", "#999")
+                  .attr("stroke-width", 1)
+                  .on("click", (event, d) => {
+                    event.stopPropagation();
+                    this.showEdgeMenu(event, d);
+                  }),
+              (update) => update,
+              (exit) => exit.remove(),
+            );
+
+          // Create nodes
+          this.nodeElements = this.svg
+            .selectAll(".node")
+            .data(this.nodes)
+            .join(
+              (enter) =>
+                enter
+                  .append("circle")
+                  .attr("class", "node")
+                  .attr("r", 15)
+                  .attr("fill", "#69b3a2")
+                  .call(this.drag())
+                  .on("click", (event, d) => {
+                    event.stopPropagation();
+                    this.handleNodeClick(d);
+                  }),
+              (update) => update,
+              (exit) => exit.remove(),
+            );
+
+          // Eigenvector values
+          if (this.game.eigenVectors && this.game.eigenVectors.length > 0) {
+            // Remove old labels
+            this.svg.selectAll(".eigenvector-value").remove();
+
+            // Create new labels
+            this.nodes.forEach((node, nodeIndex) => {
+              const eigenvectorValue =
+                this.game.eigenVectors[this.game.targetEigenIndex][nodeIndex];
+
+              this.svg
+                .append("text")
+                .attr("class", "eigenvector-value")
+                .attr("x", node.x)
+                .attr("y", node.y + 2)
+                .attr("text-anchor", "middle")
+                .text(eigenvectorValue.toFixed(2));
+            });
+          }
+
+          // Update simulation
+          this.simulation.nodes(this.nodes);
+          this.simulation.force("link").links(this.links);
+          this.simulation.alpha(0.3).restart();
+
+          // Update positions on tick
+          this.simulation.on("tick", () => {
+            const graphDisplayWidth =
+              document.querySelector(".graph-display").clientWidth - 40;
+            const graphDisplayHeight =
+              document.querySelector(".graph-display").clientHeight - 40;
+
+            this.linkElements
+              .attr("x1", (d) =>
+                Math.max(10, Math.min(graphDisplayWidth - 10, d.source.x)),
+              )
+              .attr("y1", (d) =>
+                Math.max(10, Math.min(graphDisplayHeight - 10, d.source.y)),
+              )
+              .attr("x2", (d) =>
+                Math.max(10, Math.min(graphDisplayWidth - 10, d.target.x)),
+              )
+              .attr("y2", (d) =>
+                Math.max(10, Math.min(graphDisplayHeight - 10, d.target.y)),
+              );
+
+            this.nodeElements
+              .attr("cx", (d) => {
+                d.x = Math.max(10, Math.min(graphDisplayWidth - 10, d.x)); // Constrain x within [10, graphDisplayWidth - 10]
+                return d.x;
+              })
+              .attr("cy", (d) => {
+                d.y = Math.max(10, Math.min(graphDisplayHeight - 10, d.y)); // Constrain y within [10, graphDisplayHeight - 10]
+                return d.y;
+              });
+
+            this.svg
+              .selectAll(".eigenvector-value")
+              .attr("x", (_, i) => this.nodes[i].x)
+              .attr("y", (_, i) => this.nodes[i].y + 2);
+          });
+        }
+
+        handleNodeClick(node) {
+          // Hide edge menu
+          this.hideEdgeMenu();
+
+          if (this.selectedNode === null) {
+            // First node selection
+            this.selectNode(node);
+          } else if (this.selectedNode.id === node.id) {
+            // Deselect if clicking same node
+            this.deselectNode();
+          } else {
+            // Second node selection - toggle edge
+            this.game.toggleEdge(this.selectedNode.id, node.id);
+            this.deselectNode();
+          }
+        }
+
+        selectNode(node) {
+          this.selectedNode = node;
+
+          // Highlight selected node
+          this.svg
+            .selectAll(".node")
+            .attr("fill", (d) => (d.id === node.id ? "#ff6b6b" : "#69b3a2"))
+            .attr("r", (d) => (d.id === node.id ? 17 : 15));
+        }
+
+        deselectNode() {
+          this.selectedNode = null;
+
+          // Reset node styles
+          this.svg.selectAll(".node").attr("fill", "#69b3a2").attr("r", 15);
+        }
+
+        showEdgeMenu(event, edge) {
+          // Store clicked edge
+          this.clickedEdge = edge;
+
+          // Position and show menu
+          const menu = this.edgeMenu;
+          menu.style.left = `${event.pageX}px`;
+          menu.style.top = `${event.pageY}px`;
+          menu.style.display = "block";
+
+          // Prevent event bubbling
+          event.stopPropagation();
+        }
+
+        hideEdgeMenu() {
+          this.edgeMenu.style.display = "none";
+          this.clickedEdge = null;
+        }
+
+        updateHighScoresDisplay() {
+          if (!this.game) return;
+
+          // Update difficulty display
+          this.scoreDifficulty.textContent = this.game.difficulty;
+
+          // Get high scores
+          const scores = this.game.getHighScores();
+
+          // Update list
+          if (!Array.isArray(scores) || scores.length === 0) {
+            this.highScoresList.innerHTML = "<li>No scores yet</li>";
+          } else {
+            this.highScoresList.innerHTML = scores
+              .map((score, index) => {
+                const date = new Date(score.date).toLocaleDateString();
+                return `<li>${index + 1}. ${score.name}: ${score.score.toFixed(
+                  2,
+                )} [λ<sub>${score.targetEigenIndex}</sub>, ${
+                  score.gameMode
+                }] (${date})</li>`;
+              })
+              .join("");
+          }
+        }
+
+        showGameOver(score) {
+          // Update final score display
+          this.finalScore.textContent = score.toFixed(2);
+          this.finalEigenvalueIndex.textContent =
+            this.game.targetEigenIndex + 1;
+          this.startEigenvalue.textContent = this.game.initialValue.toFixed(4);
+          this.endEigenvalue.textContent = this.game.currentValue.toFixed(4);
+
+          // Show/hide high score form
+          this.highScoreForm.style.display = this.game.isHighScore(score)
+            ? "block"
+            : "none";
+
+          // Show modal
+          this.gameOverModal.style.display = "grid";
+        }
+
+        closeGameOverModal() {
+          this.gameOverModal.style.display = "none";
+        }
+
+        drag() {
+          return d3
+            .drag()
+            .on("start", (event, d) => {
+              if (!event.active) this.simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            })
+            .on("drag", (event, d) => {
+              d.fx = event.x;
+              d.fy = event.y;
+            })
+            .on("end", (event, d) => {
+              if (!event.active) this.simulation.alphaTarget(0);
+              d.fx = null;
+              d.fy = null;
+            });
+        }
+      }
+
+      // Initialize game when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        const gameUI = new GameUI();
+        gameUI.startNewGame(); // Start a new game automatically
+      });
+    </script>
+  </body>
+</html>
