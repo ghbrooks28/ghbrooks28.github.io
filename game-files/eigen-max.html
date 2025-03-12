@@ -20,6 +20,7 @@
       }
       .controls-panel {
         display: flex;
+        flex-wrap: wrap; /* Allow items to wrap onto new lines */
         gap: 10px;
         align-items: center;
         background-color: #fff;
@@ -129,6 +130,24 @@
         border-radius: 5px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         display: none;
+      }
+
+      /* Media query for smaller screens */
+      @media (max-width: 600px) {
+        .controls-panel {
+          flex-direction: column; /* Stack items vertically on small screens */
+          align-items: flex-start; /* Align items to the start */
+        }
+
+        .controls-panel select,
+        .controls-panel button {
+          width: 100%; /* Make select and button elements take full width */
+          margin-bottom: 10px; /* Add some space between elements */
+        }
+
+        .mode-toggle {
+          width: 100%; /* Ensure the mode toggle takes full width */
+        }
       }
     </style>
   </head>
