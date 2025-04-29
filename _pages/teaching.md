@@ -15,7 +15,7 @@ nav_order: 3
 
 _2021–Present_
 
-- MATH 141: Calculus I (Spring 2024)
+- MATH 141: Calculus I (Spring 2025)
 
 - MATH 374: Discrete Structures (Fall 2024)
 
