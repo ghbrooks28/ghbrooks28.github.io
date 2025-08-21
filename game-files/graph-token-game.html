@@ -6,9 +6,7 @@
     <title>tokenFlow</title>
     <style>
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-          Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
@@ -220,9 +218,7 @@
         <h2>High Scores</h2>
         <div class="score-tabs">
           <button class="score-tab" data-difficulty="easy">Easy</button>
-          <button class="score-tab active" data-difficulty="medium">
-            Medium
-          </button>
+          <button class="score-tab active" data-difficulty="medium">Medium</button>
           <button class="score-tab" data-difficulty="hard">Hard</button>
           <button class="score-tab" data-difficulty="extreme">Extreme</button>
         </div>
@@ -272,9 +268,7 @@
 
       <div class="actions">
         <button id="pickupBtn">Pick Up Tokens</button>
-        <button id="moveBtn">
-          Move <span id="moveCost">(Cost: 1 Token)</span>
-        </button>
+        <button id="moveBtn">Move <span id="moveCost">(Cost: 1 Token)</span></button>
       </div>
 
       <div class="token-input">
@@ -287,12 +281,7 @@
         Congratulations! All vertices have equal tokens.
         <br />Your score: <span id="finalScore">0</span>
         <div class="save-score" style="margin-top: 15px">
-          <input
-            type="text"
-            id="playerName"
-            placeholder="Enter your name"
-            maxlength="20"
-          />
+          <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" />
           <button id="saveScoreBtn">Save Score</button>
         </div>
       </div>
@@ -300,21 +289,10 @@
       <div class="rules">
         <h2>Rules</h2>
         On your turn you may:
-        <p>
-          1. <strong>Pick up tokens</strong> from the vertex where you are
-          located.
-        </p>
-        <p>
-          2. <strong>Move along an edge</strong> by paying one token. Movement
-          is free if your bank is empty.
-        </p>
-        <p>
-          3. <strong>Drop any number of tokens</strong> on the vertex where you
-          are located.
-        </p>
-        <p>
-          The game is over when all vertices have the same number of tokens.
-        </p>
+        <p>1. <strong>Pick up tokens</strong> from the vertex where you are located.</p>
+        <p>2. <strong>Move along an edge</strong> by paying one token. Movement is free if your bank is empty.</p>
+        <p>3. <strong>Drop any number of tokens</strong> on the vertex where you are located.</p>
+        <p>The game is over when all vertices have the same number of tokens.</p>
       </div>
     </div>
 
@@ -387,22 +365,12 @@
         }
 
         setupEventListeners() {
-          document
-            .getElementById("pickupBtn")
-            .addEventListener("click", () => this.pickupTokens());
-          document
-            .getElementById("moveBtn")
-            .addEventListener("click", () => this.showMoveOptions());
-          document
-            .getElementById("dropBtn")
-            .addEventListener("click", () => this.dropTokens());
-          document
-            .getElementById("newGameBtn")
-            .addEventListener("click", () => this.generateNewGame());
+          document.getElementById("pickupBtn").addEventListener("click", () => this.pickupTokens());
+          document.getElementById("moveBtn").addEventListener("click", () => this.showMoveOptions());
+          document.getElementById("dropBtn").addEventListener("click", () => this.dropTokens());
+          document.getElementById("newGameBtn").addEventListener("click", () => this.generateNewGame());
 
-          this.canvas.addEventListener("click", (e) =>
-            this.handleCanvasClick(e),
-          );
+          this.canvas.addEventListener("click", (e) => this.handleCanvasClick(e));
         }
 
         generateNewGame() {
@@ -504,10 +472,7 @@
 
             if (vertex.id === this.playerPosition) {
               this.ctx.fillStyle = "#4a6fa5";
-            } else if (
-              this.moveTargets &&
-              this.moveTargets.includes(vertex.id)
-            ) {
+            } else if (this.moveTargets && this.moveTargets.includes(vertex.id)) {
               this.ctx.fillStyle = "#6a8fc5";
             } else {
               this.ctx.fillStyle = "#999";
@@ -528,11 +493,7 @@
             this.ctx.font = "12px sans-serif";
             this.ctx.textAlign = "center";
             this.ctx.textBaseline = "middle";
-            this.ctx.fillText(
-              `(ID: ${vertex.id})`,
-              vertex.x,
-              vertex.y + vertexRadius + 15,
-            );
+            this.ctx.fillText(`(ID: ${vertex.id})`, vertex.x, vertex.y + vertexRadius + 15);
           }
         }
 
@@ -582,10 +543,7 @@
         dropTokens() {
           if (this.gameOver) return;
 
-          const amount = parseInt(
-            document.getElementById("tokenAmount").value,
-            10,
-          );
+          const amount = parseInt(document.getElementById("tokenAmount").value, 10);
 
           if (isNaN(amount) || amount <= 0 || amount > this.playerTokens) {
             alert("Invalid token amount!");
@@ -623,24 +581,19 @@
         }
 
         updateInfo() {
-          document.getElementById("playerTokens").textContent =
-            this.playerTokens;
+          document.getElementById("playerTokens").textContent = this.playerTokens;
           // document.getElementById("currentVertex").textContent =
           //   this.playerPosition;
 
           const currentVertex = this.graph.getVertexById(this.playerPosition);
-          document.getElementById("vertexTokens").textContent = currentVertex
-            ? currentVertex.tokens
-            : 0;
+          document.getElementById("vertexTokens").textContent = currentVertex ? currentVertex.tokens : 0;
 
           document.getElementById("moveCount").textContent = this.moveCount;
 
           // Update button states
-          document.getElementById("pickupBtn").disabled =
-            !currentVertex || currentVertex.tokens === 0 || this.gameOver;
+          document.getElementById("pickupBtn").disabled = !currentVertex || currentVertex.tokens === 0 || this.gameOver;
           document.getElementById("moveBtn").disabled = this.gameOver;
-          document.getElementById("dropBtn").disabled =
-            this.playerTokens === 0 || this.gameOver;
+          document.getElementById("dropBtn").disabled = this.playerTokens === 0 || this.gameOver;
 
           // Update move cost text
           if (this.playerTokens > 0) {
@@ -651,10 +604,7 @@
           document.getElementById("tokenAmount").max = this.playerTokens;
 
           if (this.tokenAmount > this.playerTokens) {
-            document.getElementById("tokenAmount").value = Math.max(
-              1,
-              this.playerTokens,
-            );
+            document.getElementById("tokenAmount").value = Math.max(1, this.playerTokens);
           }
         }
 
@@ -664,10 +614,7 @@
             const totalTokens = this.graph.getAllTokenCount();
             const movePenalty = Math.floor(this.moveCount / 10);
             const numEdges = this.graph.edges.length;
-            const finalScore = Math.max(
-              0,
-              Math.floor((1000 * (totalTokens - movePenalty)) / (2 * numEdges)),
-            );
+            const finalScore = Math.max(0, Math.floor((1000 * (totalTokens - movePenalty)) / (2 * numEdges)));
 
             document.getElementById("finalScore").textContent = finalScore;
             document.getElementById("winMessage").style.display = "block";
@@ -696,10 +643,7 @@
         }
 
         saveScores() {
-          localStorage.setItem(
-            "graphTokenGameScores",
-            JSON.stringify(this.scores),
-          );
+          localStorage.setItem("graphTokenGameScores", JSON.stringify(this.scores));
         }
 
         addScore(difficulty, name, score, moves, date = new Date()) {
@@ -729,43 +673,27 @@
         game.generateNewGame();
 
         // Score management events
-        document
-          .getElementById("saveScoreBtn")
-          .addEventListener("click", () => {
-            const playerName = document
-              .getElementById("playerName")
-              .value.trim();
-            const difficulty =
-              document.getElementById("difficultySelect").value;
-            const score = parseInt(
-              document.getElementById("finalScore").textContent,
-            );
+        document.getElementById("saveScoreBtn").addEventListener("click", () => {
+          const playerName = document.getElementById("playerName").value.trim();
+          const difficulty = document.getElementById("difficultySelect").value;
+          const score = parseInt(document.getElementById("finalScore").textContent);
 
-            scoreManager.addScore(
-              difficulty,
-              playerName,
-              score,
-              game.moveCount,
-            );
-            alert("Score saved!");
-            document.getElementById("saveScoreBtn").disabled = true;
-          });
+          scoreManager.addScore(difficulty, playerName, score, game.moveCount);
+          alert("Score saved!");
+          document.getElementById("saveScoreBtn").disabled = true;
+        });
 
-        document
-          .getElementById("showScoresBtn")
-          .addEventListener("click", () => {
-            // Show the high scores panel
-            document.getElementById("highScores").style.display = "block";
+        document.getElementById("showScoresBtn").addEventListener("click", () => {
+          // Show the high scores panel
+          document.getElementById("highScores").style.display = "block";
 
-            // Show the default tab (medium)
-            showScoresForDifficulty("medium");
-          });
+          // Show the default tab (medium)
+          showScoresForDifficulty("medium");
+        });
 
-        document
-          .getElementById("closeScoresBtn")
-          .addEventListener("click", () => {
-            document.getElementById("highScores").style.display = "none";
-          });
+        document.getElementById("closeScoresBtn").addEventListener("click", () => {
+          document.getElementById("highScores").style.display = "none";
+        });
 
         // Add tab switching functionality
         const scoreTabs = document.querySelectorAll(".score-tab");
