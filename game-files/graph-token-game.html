@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tokenFlow</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+
+      h1,
+      h2 {
+        color: #444;
+      }
+
+      .game-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .game-info {
+        display: flex;
+        justify-content: space-between;
+        background-color: #f0f0f0;
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .game-info div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .game-info span {
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+
+      .canvas-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      canvas {
+        background-color: #f9f9f9;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      button {
+        padding: 10px 15px;
+        background-color: #4a6fa5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: #3a5a8c;
+      }
+
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .token-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+
+      .token-input input {
+        width: 60px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .token-input button {
+        padding: 8px 12px;
+      }
+
+      .rules {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+      }
+
+      .win-message {
+        padding: 15px;
+        background-color: #d4edda;
+        color: #155724;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+        margin-top: 10px;
+        display: none;
+      }
+
+      #difficultySelect {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+      }
+
+      .high-scores {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        z-index: 100;
+        width: 80%;
+        max-width: 600px;
+      }
+
+      .score-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .score-tab {
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .score-tab.active {
+        background-color: #4a6fa5;
+        color: white;
+      }
+
+      #scoreTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+      }
+
+      #scoreTable th,
+      #scoreTable td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+
+      #scoreTable th {
+        background-color: #f0f0f0;
+      }
+
+      #scoreTable tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      #closeScoresBtn {
+        display: block;
+        margin: 0 auto;
+      }
+
+      .save-score input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>tokenFlow</h1>
+
+      <div class="game-setup">
+        <label for="difficultySelect">Difficulty: </label>
+        <select id="difficultySelect">
+          <option value="easy">Easy (4-6 vertices)</option>
+          <option value="medium" selected>Medium (7-9 vertices)</option>
+          <option value="hard">Hard (10-12 vertices)</option>
+          <option value="extreme">Extreme (13-15 vertices)</option>
+        </select>
+        <button id="newGameBtn">New Game</button>
+        <button id="showScoresBtn">Show High Scores</button>
+      </div>
+
+      <div id="highScores" class="high-scores" style="display: none">
+        <h2>High Scores</h2>
+        <div class="score-tabs">
+          <button class="score-tab" data-difficulty="easy">Easy</button>
+          <button class="score-tab active" data-difficulty="medium">
+            Medium
+          </button>
+          <button class="score-tab" data-difficulty="hard">Hard</button>
+          <button class="score-tab" data-difficulty="extreme">Extreme</button>
+        </div>
+        <div class="score-content">
+          <table id="scoreTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Turns</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="scoresBody">
+              <!-- Scores will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <button id="closeScoresBtn">Close</button>
+      </div>
+
+      <div class="game-info">
+        &emsp;
+        <div>
+          <label>Your Tokens</label>
+          <span id="playerTokens">0</span>
+        </div>
+        <!-- <div>
+          <label>Current Vertex</label>
+          <span id="currentVertex">0</span>
+        </div> -->
+        <div>
+          <label>Tokens Here</label>
+          <span id="vertexTokens">0</span>
+        </div>
+        <div>
+          <label>Turns</label>
+          <span id="moveCount">0</span>
+        </div>
+        &emsp;
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+      </div>
+
+      <div class="actions">
+        <button id="pickupBtn">Pick Up Tokens</button>
+        <button id="moveBtn">
+          Move <span id="moveCost">(Cost: 1 Token)</span>
+        </button>
+      </div>
+
+      <div class="token-input">
+        <label for="tokenAmount">Drop Tokens:</label>
+        <input type="number" id="tokenAmount" min="1" value="1" />
+        <button id="dropBtn">Drop</button>
+      </div>
+
+      <div id="winMessage" class="win-message">
+        Congratulations! All vertices have equal tokens.
+        <br />Your score: <span id="finalScore">0</span>
+        <div class="save-score" style="margin-top: 15px">
+          <input
+            type="text"
+            id="playerName"
+            placeholder="Enter your name"
+            maxlength="20"
+          />
+          <button id="saveScoreBtn">Save Score</button>
+        </div>
+      </div>
+
+      <div class="rules">
+        <h2>Rules</h2>
+        On your turn you may:
+        <p>
+          1. <strong>Pick up tokens</strong> from the vertex where you are
+          located.
+        </p>
+        <p>
+          2. <strong>Move along an edge</strong> by paying one token. Movement
+          is free if your bank is empty.
+        </p>
+        <p>
+          3. <strong>Drop any number of tokens</strong> on the vertex where you
+          are located.
+        </p>
+        <p>
+          The game is over when all vertices have the same number of tokens.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      class Graph {
+        constructor() {
+          this.vertices = [];
+          this.edges = [];
+        }
+
+        addVertex(x, y) {
+          const vertex = {
+            id: this.vertices.length,
+            x,
+            y,
+            tokens: 0,
+            neighbors: [],
+          };
+          this.vertices.push(vertex);
+          return vertex;
+        }
+
+        addEdge(v1, v2) {
+          if (!v1.neighbors.includes(v2.id)) {
+            v1.neighbors.push(v2.id);
+            v2.neighbors.push(v1.id);
+            this.edges.push({ from: v1.id, to: v2.id });
+          }
+        }
+
+        getVertexById(id) {
+          return this.vertices.find((v) => v.id === id);
+        }
+
+        getAllTokenCount() {
+          return this.vertices.reduce((sum, vertex) => sum + vertex.tokens, 0);
+        }
+
+        isGameOver() {
+          if (this.vertices.length === 0) return false;
+
+          const firstTokenCount = this.vertices[0].tokens;
+          return this.vertices.every((v) => v.tokens === firstTokenCount);
+        }
+      }
+
+      class GameManager {
+        constructor(canvasId) {
+          this.canvas = document.getElementById(canvasId);
+          this.ctx = this.canvas.getContext("2d");
+          this.graph = new Graph();
+          this.playerPosition = 0;
+          this.playerTokens = 0;
+          this.moveCount = 0;
+          this.gameOver = false;
+
+          this.setupCanvas();
+          this.setupEventListeners();
+        }
+
+        setupCanvas() {
+          this.canvas.width = this.canvas.parentElement.clientWidth;
+          this.canvas.height = this.canvas.parentElement.clientHeight;
+
+          window.addEventListener("resize", () => {
+            this.canvas.width = this.canvas.parentElement.clientWidth;
+            this.canvas.height = this.canvas.parentElement.clientHeight;
+            this.draw();
+          });
+        }
+
+        setupEventListeners() {
+          document
+            .getElementById("pickupBtn")
+            .addEventListener("click", () => this.pickupTokens());
+          document
+            .getElementById("moveBtn")
+            .addEventListener("click", () => this.showMoveOptions());
+          document
+            .getElementById("dropBtn")
+            .addEventListener("click", () => this.dropTokens());
+          document
+            .getElementById("newGameBtn")
+            .addEventListener("click", () => this.generateNewGame());
+
+          this.canvas.addEventListener("click", (e) =>
+            this.handleCanvasClick(e),
+          );
+        }
+
+        generateNewGame() {
+          const difficulty = document.getElementById("difficultySelect").value;
+          let vertexCount;
+
+          switch (difficulty) {
+            case "easy":
+              vertexCount = Math.floor(Math.random() * 3) + 4; // 4-6 vertices
+              break;
+            case "hard":
+              vertexCount = Math.floor(Math.random() * 3) + 10; // 10-12 vertices
+              break;
+            case "extreme":
+              vertexCount = Math.floor(Math.random() * 3) + 13; // 13-15 vertices
+              break;
+            case "medium":
+            default:
+              vertexCount = Math.floor(Math.random() * 3) + 7; // 7-9 vertices
+              break;
+          }
+
+          this.graph = new Graph();
+          this.playerPosition = 0;
+          this.playerTokens = 0;
+          this.moveCount = 0;
+          this.gameOver = false;
+          document.getElementById("winMessage").style.display = "none";
+
+          // Generate vertices in a circle
+          const centerX = this.canvas.width / 2;
+          const centerY = this.canvas.height / 2;
+          const radius = Math.min(centerX, centerY) * 0.7;
+
+          for (let i = 0; i < vertexCount; i++) {
+            const angle = (i / vertexCount) * Math.PI * 2;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            this.graph.addVertex(x, y);
+          }
+
+          // Generate random edges (connectedness)
+          // Ensure the graph is connected by first creating a minimum spanning tree
+          for (let i = 1; i < vertexCount; i++) {
+            const from = this.graph.getVertexById(i - 1);
+            const to = this.graph.getVertexById(i);
+            this.graph.addEdge(from, to);
+          }
+
+          // Add some extra edges randomly
+          const maxExtraEdges = Math.floor(vertexCount * 0.8);
+          const extraEdges = Math.floor(Math.random() * maxExtraEdges) + 1;
+
+          for (let i = 0; i < extraEdges; i++) {
+            const v1 = Math.floor(Math.random() * vertexCount);
+            let v2 = Math.floor(Math.random() * vertexCount);
+            // Ensure we don't connect a vertex to itself
+            while (v1 === v2) {
+              v2 = Math.floor(Math.random() * vertexCount);
+            }
+
+            const from = this.graph.getVertexById(v1);
+            const to = this.graph.getVertexById(v2);
+            this.graph.addEdge(from, to);
+          }
+
+          // Set initial tokens based on vertex degree
+          for (const vertex of this.graph.vertices) {
+            vertex.tokens = vertex.neighbors.length;
+          }
+
+          this.updateInfo();
+          this.draw();
+        }
+
+        draw() {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+          // Draw edges
+          this.ctx.strokeStyle = "#666";
+          this.ctx.lineWidth = 2;
+
+          for (const edge of this.graph.edges) {
+            const from = this.graph.getVertexById(edge.from);
+            const to = this.graph.getVertexById(edge.to);
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(from.x, from.y);
+            this.ctx.lineTo(to.x, to.y);
+            this.ctx.stroke();
+          }
+
+          // Draw vertices
+          const vertexRadius = 25;
+
+          for (const vertex of this.graph.vertices) {
+            // Draw vertex circle
+            this.ctx.beginPath();
+
+            if (vertex.id === this.playerPosition) {
+              this.ctx.fillStyle = "#4a6fa5";
+            } else if (
+              this.moveTargets &&
+              this.moveTargets.includes(vertex.id)
+            ) {
+              this.ctx.fillStyle = "#6a8fc5";
+            } else {
+              this.ctx.fillStyle = "#999";
+            }
+
+            this.ctx.arc(vertex.x, vertex.y, vertexRadius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Draw token count as the primary label
+            this.ctx.fillStyle = "white";
+            this.ctx.font = "bold 16px sans-serif";
+            this.ctx.textAlign = "center";
+            this.ctx.textBaseline = "middle";
+            this.ctx.fillText(vertex.tokens, vertex.x, vertex.y);
+
+            // Draw vertex ID below with transparency
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.0)";
+            this.ctx.font = "12px sans-serif";
+            this.ctx.textAlign = "center";
+            this.ctx.textBaseline = "middle";
+            this.ctx.fillText(
+              `(ID: ${vertex.id})`,
+              vertex.x,
+              vertex.y + vertexRadius + 15,
+            );
+          }
+        }
+
+        pickupTokens() {
+          if (this.gameOver) return;
+
+          const currentVertex = this.graph.getVertexById(this.playerPosition);
+          if (currentVertex.tokens > 0) {
+            this.playerTokens += currentVertex.tokens;
+            currentVertex.tokens = 0;
+            this.moveCount++;
+            this.updateInfo();
+            this.checkGameOver();
+          }
+        }
+
+        showMoveOptions() {
+          // Allow movement regardless of token count
+          if (this.gameOver) return;
+
+          const currentVertex = this.graph.getVertexById(this.playerPosition);
+          this.moveTargets = currentVertex.neighbors;
+          this.draw();
+        }
+
+        moveToVertex(vertexId) {
+          // Allow movement regardless of token count, but charge a token if carrying any
+          if (this.gameOver) return;
+
+          const currentVertex = this.graph.getVertexById(this.playerPosition);
+
+          if (currentVertex.neighbors.includes(vertexId)) {
+            this.playerPosition = vertexId;
+
+            // Only charge a token if the player has tokens
+            if (this.playerTokens > 0) {
+              this.playerTokens--;
+            }
+
+            this.moveCount++;
+            this.moveTargets = null;
+            this.updateInfo();
+            this.draw();
+          }
+        }
+
+        dropTokens() {
+          if (this.gameOver) return;
+
+          const amount = parseInt(
+            document.getElementById("tokenAmount").value,
+            10,
+          );
+
+          if (isNaN(amount) || amount <= 0 || amount > this.playerTokens) {
+            alert("Invalid token amount!");
+            return;
+          }
+
+          const currentVertex = this.graph.getVertexById(this.playerPosition);
+          currentVertex.tokens += amount;
+          this.playerTokens -= amount;
+          this.moveCount++;
+          this.updateInfo();
+          this.checkGameOver();
+        }
+
+        handleCanvasClick(e) {
+          if (this.gameOver || !this.moveTargets) return;
+
+          const rect = this.canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Check if clicked on a move target
+          for (const vertexId of this.moveTargets) {
+            const vertex = this.graph.getVertexById(vertexId);
+            const dx = vertex.x - x;
+            const dy = vertex.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= 25) {
+              // 25 is vertex radius
+              this.moveToVertex(vertexId);
+              break;
+            }
+          }
+        }
+
+        updateInfo() {
+          document.getElementById("playerTokens").textContent =
+            this.playerTokens;
+          // document.getElementById("currentVertex").textContent =
+          //   this.playerPosition;
+
+          const currentVertex = this.graph.getVertexById(this.playerPosition);
+          document.getElementById("vertexTokens").textContent = currentVertex
+            ? currentVertex.tokens
+            : 0;
+
+          document.getElementById("moveCount").textContent = this.moveCount;
+
+          // Update button states
+          document.getElementById("pickupBtn").disabled =
+            !currentVertex || currentVertex.tokens === 0 || this.gameOver;
+          document.getElementById("moveBtn").disabled = this.gameOver;
+          document.getElementById("dropBtn").disabled =
+            this.playerTokens === 0 || this.gameOver;
+
+          // Update move cost text
+          if (this.playerTokens > 0) {
+            document.getElementById("moveCost").textContent = "(Cost: 1 Token)";
+          } else {
+            document.getElementById("moveCost").textContent = "(Free)";
+          }
+          document.getElementById("tokenAmount").max = this.playerTokens;
+
+          if (this.tokenAmount > this.playerTokens) {
+            document.getElementById("tokenAmount").value = Math.max(
+              1,
+              this.playerTokens,
+            );
+          }
+        }
+
+        checkGameOver() {
+          if (this.graph.isGameOver() && this.graph.vertices.length > 0) {
+            this.gameOver = true;
+            const totalTokens = this.graph.getAllTokenCount();
+            const movePenalty = Math.floor(this.moveCount / 10);
+            const numEdges = this.graph.edges.length;
+            const finalScore = Math.max(
+              0,
+              Math.floor((1000 * (totalTokens - movePenalty)) / (2 * numEdges)),
+            );
+
+            document.getElementById("finalScore").textContent = finalScore;
+            document.getElementById("winMessage").style.display = "block";
+          }
+
+          this.draw();
+        }
+      }
+
+      class ScoreManager {
+        constructor() {
+          this.scores = {
+            easy: [],
+            medium: [],
+            hard: [],
+            extreme: [],
+          };
+          this.loadScores();
+        }
+
+        loadScores() {
+          const savedScores = localStorage.getItem("graphTokenGameScores");
+          if (savedScores) {
+            this.scores = JSON.parse(savedScores);
+          }
+        }
+
+        saveScores() {
+          localStorage.setItem(
+            "graphTokenGameScores",
+            JSON.stringify(this.scores),
+          );
+        }
+
+        addScore(difficulty, name, score, moves, date = new Date()) {
+          const newScore = {
+            name: name || "Anonymous",
+            score: score,
+            moves: moves,
+            date: date.toISOString().split("T")[0],
+          };
+
+          this.scores[difficulty].push(newScore);
+          this.scores[difficulty].sort((a, b) => b.score - a.score); // Sort by score (highest first)
+          this.scores[difficulty] = this.scores[difficulty].slice(0, 10); // Keep only top 10
+
+          this.saveScores();
+        }
+
+        getScores(difficulty) {
+          return this.scores[difficulty] || [];
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const game = new GameManager("gameCanvas");
+        const scoreManager = new ScoreManager();
+
+        game.generateNewGame();
+
+        // Score management events
+        document
+          .getElementById("saveScoreBtn")
+          .addEventListener("click", () => {
+            const playerName = document
+              .getElementById("playerName")
+              .value.trim();
+            const difficulty =
+              document.getElementById("difficultySelect").value;
+            const score = parseInt(
+              document.getElementById("finalScore").textContent,
+            );
+
+            scoreManager.addScore(
+              difficulty,
+              playerName,
+              score,
+              game.moveCount,
+            );
+            alert("Score saved!");
+            document.getElementById("saveScoreBtn").disabled = true;
+          });
+
+        document
+          .getElementById("showScoresBtn")
+          .addEventListener("click", () => {
+            // Show the high scores panel
+            document.getElementById("highScores").style.display = "block";
+
+            // Show the default tab (medium)
+            showScoresForDifficulty("medium");
+          });
+
+        document
+          .getElementById("closeScoresBtn")
+          .addEventListener("click", () => {
+            document.getElementById("highScores").style.display = "none";
+          });
+
+        // Add tab switching functionality
+        const scoreTabs = document.querySelectorAll(".score-tab");
+        scoreTabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            // Remove active class from all tabs
+            scoreTabs.forEach((t) => t.classList.remove("active"));
+
+            // Add active class to clicked tab
+            tab.classList.add("active");
+
+            // Show scores for selected difficulty
+            const difficulty = tab.getAttribute("data-difficulty");
+            showScoresForDifficulty(difficulty);
+          });
+        });
+
+        function showScoresForDifficulty(difficulty) {
+          const scores = scoreManager.getScores(difficulty);
+          const scoresBody = document.getElementById("scoresBody");
+
+          // Clear previous scores
+          scoresBody.innerHTML = "";
+
+          if (scores.length === 0) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.colSpan = 5;
+            cell.textContent = "No scores yet for this difficulty!";
+            cell.style.textAlign = "center";
+            row.appendChild(cell);
+            scoresBody.appendChild(row);
+          } else {
+            // Populate with scores
+            scores.forEach((score, index) => {
+              const row = document.createElement("tr");
+
+              const rankCell = document.createElement("td");
+              rankCell.textContent = index + 1;
+
+              const nameCell = document.createElement("td");
+              nameCell.textContent = score.name;
+
+              const scoreCell = document.createElement("td");
+              scoreCell.textContent = score.score;
+
+              const movesCell = document.createElement("td");
+              movesCell.textContent = score.moves;
+
+              const dateCell = document.createElement("td");
+              dateCell.textContent = score.date;
+
+              row.appendChild(rankCell);
+              row.appendChild(nameCell);
+              row.appendChild(scoreCell);
+              row.appendChild(movesCell);
+              row.appendChild(dateCell);
+
+              scoresBody.appendChild(row);
+            });
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
