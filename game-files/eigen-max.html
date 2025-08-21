@@ -156,23 +156,12 @@
 
     <div class="instructions">
       <h3>How to Play</h3>
-      <p>
-        Optimize the kth largest eigenvalue (λₖ) of the graph's adjacency
-        matrix. You have 20 turns or a limited time to maximize the value.
-      </p>
+      <p>Optimize the kth largest eigenvalue (λₖ) of the graph's adjacency matrix. You have 20 turns or a limited time to maximize the value.</p>
       <ul>
-        <li>
-          Click on a node to select it, then click on another node to add or
-          remove an edge.
-        </li>
+        <li>Click on a node to select it, then click on another node to add or remove an edge.</li>
         <li>The graph must remain connected at all times.</li>
-        <li>
-          Each eigenvector entry is displayed at its corresponding vertex.
-        </li>
-        <li>
-          Your score is based on how much you improve the target eigenvalue from
-          its initial value.
-        </li>
+        <li>Each eigenvector entry is displayed at its corresponding vertex.</li>
+        <li>Your score is based on how much you improve the target eigenvalue from its initial value.</li>
       </ul>
     </div>
 
@@ -199,17 +188,11 @@
           </select>
         </div>
 
-        <button id="start-game" aria-label="Start New Game">
-          Start New Game
-        </button>
-        <button id="show-high-scores" aria-label="Show High Scores">
-          High Scores
-        </button>
+        <button id="start-game" aria-label="Start New Game">Start New Game</button>
+        <button id="show-high-scores" aria-label="Show High Scores">High Scores</button>
         <button id="end-game" aria-label="End Game">End Game</button>
 
-        <div id="timer-display" style="display: none">
-          Time: <span class="timer" id="timer">3:00</span>
-        </div>
+        <div id="timer-display" style="display: none">Time: <span class="timer" id="timer">3:00</span></div>
       </div>
 
       <div class="graph-display" id="graph-display">
@@ -251,19 +234,13 @@
         <h2>Game Over!</h2>
         <p>Your score: <span id="final-score">0.00</span></p>
         <p>
-          You improved λ<sub><span id="final-eigenvalue-index">0</span></sub>
-          from <span id="start-eigenvalue">0.00</span> to
+          You improved λ<sub><span id="final-eigenvalue-index">0</span></sub> from <span id="start-eigenvalue">0.00</span> to
           <span id="end-eigenvalue">0.00</span>
         </p>
 
         <div id="high-score-form" style="margin-top: 20px">
           <p>You made the high score list!</p>
-          <input
-            type="text"
-            id="player-name"
-            placeholder="Enter your name"
-            maxlength="20"
-          />
+          <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" />
           <button id="submit-score">Submit Score</button>
         </div>
 
@@ -278,11 +255,7 @@
     <script>
       // EigenTree Game - Core Game Logic
       class EigenTreeGame {
-        constructor(
-          difficulty = "Medium",
-          gameMode = "turns",
-          lambda = "lam_1",
-        ) {
+        constructor(difficulty = "Medium", gameMode = "turns", lambda = "lam_1") {
           this.difficulty = difficulty;
           this.lambda = lambda;
           this.gameMode = gameMode;
@@ -388,24 +361,18 @@
           // Create edges using a randomized spanning tree approach
           const edges = [];
           const connected = new Set([0]); // Start with node 0
-          const unconnected = new Set(
-            nodes.map((n) => n.id).filter((id) => id !== 0),
-          );
+          const unconnected = new Set(nodes.map((n) => n.id).filter((id) => id !== 0));
 
           // Connect all nodes to form a tree
           while (unconnected.size > 0) {
             // Pick a random connected node
             const connectedArray = Array.from(connected);
-            const sourceIndex = Math.floor(
-              Math.random() * connectedArray.length,
-            );
+            const sourceIndex = Math.floor(Math.random() * connectedArray.length);
             const source = connectedArray[sourceIndex];
 
             // Pick a random unconnected node
             const unconnectedArray = Array.from(unconnected);
-            const targetIndex = Math.floor(
-              Math.random() * unconnectedArray.length,
-            );
+            const targetIndex = Math.floor(Math.random() * unconnectedArray.length);
             const target = unconnectedArray[targetIndex];
 
             // Add edge
@@ -481,9 +448,7 @@
           // Generate simulated eigenvalues
           let largestEigenvalue = Math.sqrt(n) + Math.random();
           for (let i = 0; i < n; i++) {
-            eigenvalues.push(
-              largestEigenvalue * (1 - i / n) + Math.random() * 0.5 - 0.25,
-            );
+            eigenvalues.push(largestEigenvalue * (1 - i / n) + Math.random() * 0.5 - 0.25);
           }
           eigenvalues.sort((a, b) => b - a);
 
@@ -505,19 +470,13 @@
           if (this.isGameOver) return false;
 
           // Check if nodes exist
-          if (
-            sourceNodeId === targetNodeId ||
-            sourceNodeId >= this.graph.nodes.length ||
-            targetNodeId >= this.graph.nodes.length
-          ) {
+          if (sourceNodeId === targetNodeId || sourceNodeId >= this.graph.nodes.length || targetNodeId >= this.graph.nodes.length) {
             return false;
           }
 
           // Check if edge exists
           const edgeIndex = this.graph.edges.findIndex(
-            (e) =>
-              (e.source === sourceNodeId && e.target === targetNodeId) ||
-              (e.source === targetNodeId && e.target === sourceNodeId),
+            (e) => (e.source === sourceNodeId && e.target === targetNodeId) || (e.source === targetNodeId && e.target === sourceNodeId)
           );
 
           // Save previous state for undo
@@ -561,11 +520,7 @@
         wouldDisconnectGraph(sourceNodeId, targetNodeId) {
           // Create a copy of edges excluding the one we want to remove
           const edgesCopy = this.graph.edges.filter(
-            (e) =>
-              !(
-                (e.source === sourceNodeId && e.target === targetNodeId) ||
-                (e.source === targetNodeId && e.target === sourceNodeId)
-              ),
+            (e) => !((e.source === sourceNodeId && e.target === targetNodeId) || (e.source === targetNodeId && e.target === sourceNodeId))
           );
 
           // Create adjacency list
@@ -575,10 +530,8 @@
             .map(() => []);
 
           edgesCopy.forEach((edge) => {
-            const source =
-              typeof edge.source === "object" ? edge.source.id : edge.source;
-            const target =
-              typeof edge.target === "object" ? edge.target.id : edge.target;
+            const source = typeof edge.source === "object" ? edge.source.id : edge.source;
+            const target = typeof edge.target === "object" ? edge.target.id : edge.target;
             adjList[source].push(target);
             adjList[target].push(source);
           });
@@ -639,10 +592,7 @@
           this.notifyUpdate();
 
           // Check if game is over
-          if (
-            (this.gameMode === "turns" && this.turnsLeft <= 0) ||
-            (this.gameMode === "time" && this.timeRemaining <= 0)
-          ) {
+          if ((this.gameMode === "turns" && this.turnsLeft <= 0) || (this.gameMode === "time" && this.timeRemaining <= 0)) {
             this.endGame();
           }
         }
@@ -733,9 +683,7 @@
 
           // Sort and limit to top 10
           this.highScores[this.difficulty].sort((a, b) => b.score - a.score);
-          this.highScores[this.difficulty] = this.highScores[
-            this.difficulty
-          ].slice(0, 10);
+          this.highScores[this.difficulty] = this.highScores[this.difficulty].slice(0, 10);
 
           // Save to localStorage
           this.saveHighScores();
@@ -764,10 +712,7 @@
 
         saveHighScores() {
           try {
-            localStorage.setItem(
-              "eigenTreeHighScores",
-              JSON.stringify(this.highScores),
-            );
+            localStorage.setItem("eigenTreeHighScores", JSON.stringify(this.highScores));
           } catch (e) {
             console.error("Error saving high scores:", e);
           }
@@ -799,8 +744,7 @@
           this.lambdaSelect = document.getElementById("lambda-select");
           this.gameModeSelect = document.getElementById("game-mode");
           this.startButton = document.getElementById("start-game");
-          this.showHighScoresButton =
-            document.getElementById("show-high-scores");
+          this.showHighScoresButton = document.getElementById("show-high-scores");
           // this.resetButton = document.getElementById("reset-game");
           // this.undoButton = document.getElementById("undo-move");
           this.timerDisplay = document.getElementById("timer-display");
@@ -811,15 +755,10 @@
           this.endGameButton = document.getElementById("end-game");
 
           // Game stats display
-          this.displayDifficulty =
-            document.getElementById("display-difficulty");
-          this.targetEigenvalueIndex = document.getElementById(
-            "target-eigenvalue-index",
-          );
-          this.initialEigenvalue =
-            document.getElementById("initial-eigenvalue");
-          this.currentEigenvalue =
-            document.getElementById("current-eigenvalue");
+          this.displayDifficulty = document.getElementById("display-difficulty");
+          this.targetEigenvalueIndex = document.getElementById("target-eigenvalue-index");
+          this.initialEigenvalue = document.getElementById("initial-eigenvalue");
+          this.currentEigenvalue = document.getElementById("current-eigenvalue");
           this.improvement = document.getElementById("improvement");
           this.turnsLeft = document.getElementById("turns-left");
 
@@ -830,9 +769,7 @@
           // Game over modal
           this.gameOverModal = document.getElementById("game-over-modal");
           this.finalScore = document.getElementById("final-score");
-          this.finalEigenvalueIndex = document.getElementById(
-            "final-eigenvalue-index",
-          );
+          this.finalEigenvalueIndex = document.getElementById("final-eigenvalue-index");
           this.startEigenvalue = document.getElementById("start-eigenvalue");
           this.endEigenvalue = document.getElementById("end-eigenvalue");
           this.highScoreForm = document.getElementById("high-score-form");
@@ -902,8 +839,7 @@
           // Game mode selection
           this.gameModeSelect.addEventListener("change", () => {
             const mode = this.gameModeSelect.value;
-            this.timerDisplay.style.display =
-              mode === "time" ? "block" : "none";
+            this.timerDisplay.style.display = mode === "time" ? "block" : "none";
             if (this.game) {
               this.game.gameMode = mode;
               if (mode === "time") {
@@ -933,17 +869,12 @@
           this.deleteEdgeButton.addEventListener("click", () => {
             try {
               if (this.clickedEdge) {
-                this.game.toggleEdge(
-                  this.clickedEdge.source.id,
-                  this.clickedEdge.target.id,
-                );
+                this.game.toggleEdge(this.clickedEdge.source.id, this.clickedEdge.target.id);
                 this.hideEdgeMenu();
               }
             } catch (error) {
               console.error("Error deleting edge:", error);
-              alert(
-                "An error occurred while deleting the edge. Please try again.",
-              );
+              alert("An error occurred while deleting the edge. Please try again.");
             }
           });
 
@@ -985,15 +916,10 @@
 
           // Update game stats
           this.displayDifficulty.textContent = this.game.difficulty;
-          this.targetEigenvalueIndex.textContent =
-            this.game.targetEigenIndex + 1;
-          this.initialEigenvalue.textContent =
-            this.game.initialValue.toFixed(4);
-          this.currentEigenvalue.textContent =
-            this.game.currentValue.toFixed(4);
-          this.improvement.textContent = (
-            this.game.currentValue - this.game.initialValue
-          ).toFixed(4);
+          this.targetEigenvalueIndex.textContent = this.game.targetEigenIndex + 1;
+          this.initialEigenvalue.textContent = this.game.initialValue.toFixed(4);
+          this.currentEigenvalue.textContent = this.game.currentValue.toFixed(4);
+          this.improvement.textContent = (this.game.currentValue - this.game.initialValue).toFixed(4);
 
           // Update mode-specific UI
           if (this.game.gameMode === "turns") {
@@ -1002,9 +928,7 @@
             // Update timer display
             const minutes = Math.floor(this.game.timeRemaining / 60);
             const seconds = this.game.timeRemaining % 60;
-            this.timerElement.textContent = `${minutes}:${seconds
-              .toString()
-              .padStart(2, "0")}`;
+            this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
           }
 
           // Update undo button
@@ -1021,10 +945,8 @@
           d3.select("#graph-svg").selectAll("*").remove();
 
           // Get the dimensions of the .graph-display element
-          const graphDisplayWidth =
-            document.querySelector(".graph-display").clientWidth - 40;
-          const graphDisplayHeight =
-            document.querySelector(".graph-display").clientHeight - 40;
+          const graphDisplayWidth = document.querySelector(".graph-display").clientWidth - 40;
+          const graphDisplayHeight = document.querySelector(".graph-display").clientHeight - 40;
 
           // Create SVG element with dynamic width and height
           this.svg = d3
@@ -1036,7 +958,7 @@
             .call(
               d3.zoom().on("zoom", (event) => {
                 this.svg.attr("transform", event.transform);
-              }),
+              })
             )
             .append("g");
 
@@ -1048,13 +970,10 @@
               d3
                 .forceLink()
                 .id((d) => d.id)
-                .distance(50),
+                .distance(50)
             )
             .force("charge", d3.forceManyBody().strength(-100))
-            .force(
-              "center",
-              d3.forceCenter(graphDisplayWidth / 2, graphDisplayHeight / 2),
-            ) // Center the simulation
+            .force("center", d3.forceCenter(graphDisplayWidth / 2, graphDisplayHeight / 2)) // Center the simulation
             .force("collision", d3.forceCollide().radius(35));
 
           // Initial draw
@@ -1095,7 +1014,7 @@
                     this.showEdgeMenu(event, d);
                   }),
               (update) => update,
-              (exit) => exit.remove(),
+              (exit) => exit.remove()
             );
 
           // Create nodes
@@ -1115,7 +1034,7 @@
                     this.handleNodeClick(d);
                   }),
               (update) => update,
-              (exit) => exit.remove(),
+              (exit) => exit.remove()
             );
 
           // Eigenvector values
@@ -1125,8 +1044,7 @@
 
             // Create new labels
             this.nodes.forEach((node, nodeIndex) => {
-              const eigenvectorValue =
-                this.game.eigenVectors[this.game.targetEigenIndex][nodeIndex];
+              const eigenvectorValue = this.game.eigenVectors[this.game.targetEigenIndex][nodeIndex];
 
               this.svg
                 .append("text")
@@ -1145,24 +1063,14 @@
 
           // Update positions on tick
           this.simulation.on("tick", () => {
-            const graphDisplayWidth =
-              document.querySelector(".graph-display").clientWidth - 40;
-            const graphDisplayHeight =
-              document.querySelector(".graph-display").clientHeight - 40;
+            const graphDisplayWidth = document.querySelector(".graph-display").clientWidth - 40;
+            const graphDisplayHeight = document.querySelector(".graph-display").clientHeight - 40;
 
             this.linkElements
-              .attr("x1", (d) =>
-                Math.max(10, Math.min(graphDisplayWidth - 10, d.source.x)),
-              )
-              .attr("y1", (d) =>
-                Math.max(10, Math.min(graphDisplayHeight - 10, d.source.y)),
-              )
-              .attr("x2", (d) =>
-                Math.max(10, Math.min(graphDisplayWidth - 10, d.target.x)),
-              )
-              .attr("y2", (d) =>
-                Math.max(10, Math.min(graphDisplayHeight - 10, d.target.y)),
-              );
+              .attr("x1", (d) => Math.max(10, Math.min(graphDisplayWidth - 10, d.source.x)))
+              .attr("y1", (d) => Math.max(10, Math.min(graphDisplayHeight - 10, d.source.y)))
+              .attr("x2", (d) => Math.max(10, Math.min(graphDisplayWidth - 10, d.target.x)))
+              .attr("y2", (d) => Math.max(10, Math.min(graphDisplayHeight - 10, d.target.y)));
 
             this.nodeElements
               .attr("cx", (d) => {
@@ -1250,9 +1158,7 @@
             this.highScoresList.innerHTML = scores
               .map((score, index) => {
                 const date = new Date(score.date).toLocaleDateString();
-                return `<li>${index + 1}. ${score.name}: ${score.score.toFixed(
-                  2,
-                )} [λ<sub>${score.targetEigenIndex}</sub>, ${
+                return `<li>${index + 1}. ${score.name}: ${score.score.toFixed(2)} [λ<sub>${score.targetEigenIndex}</sub>, ${
                   score.gameMode
                 }] (${date})</li>`;
               })
@@ -1263,15 +1169,12 @@
         showGameOver(score) {
           // Update final score display
           this.finalScore.textContent = score.toFixed(2);
-          this.finalEigenvalueIndex.textContent =
-            this.game.targetEigenIndex + 1;
+          this.finalEigenvalueIndex.textContent = this.game.targetEigenIndex + 1;
           this.startEigenvalue.textContent = this.game.initialValue.toFixed(4);
           this.endEigenvalue.textContent = this.game.currentValue.toFixed(4);
 
           // Show/hide high score form
-          this.highScoreForm.style.display = this.game.isHighScore(score)
-            ? "block"
-            : "none";
+          this.highScoreForm.style.display = this.game.isHighScore(score) ? "block" : "none";
 
           // Show modal
           this.gameOverModal.style.display = "grid";
