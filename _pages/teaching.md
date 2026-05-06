@@ -15,6 +15,10 @@ nav_order: 3
 
 _2021–Present_
 
+- MATH 374: Discrete Structures (Spring 2026)
+
+- MATH 141: Calculus I (Spring 2026)
+
 - MATH 374: Discrete Structures (Fall 2025)
 
 - MATH 115: Precalculus Mathematics (Fall 2025)
@@ -39,7 +43,7 @@ _2021–Present_
 
 ### Teaching Assistant -- Department of Mathematics
 
-_2020–Present_
+_2020–2023_
 
 - MATH 142: Calculus II - Honors (Fall 2023)
 
@@ -53,9 +57,11 @@ _2020–Present_
 
 ## **Columbia College**
 
-### Adjunct Instructor -- Division of Health, Mathematics & Sciences
+### Adjunct Professor -- Division of Health, Mathematics & Sciences
 
 _2025–Present_
+
+- MTH 150: Discrete Mathematics (Summer 2026)
 
 - MTH 150: Discrete Mathematics (Summer 2025)
 
