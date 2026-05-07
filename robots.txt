@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://ghbrooks28.github.io/sitemap.xml
+Sitemap: https://ghbrooks.me/sitemap.xml

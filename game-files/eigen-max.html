@@ -5,229 +5,547 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>eigenMax</title>
     <style>
+      :root {
+        --panel: #ffffff;
+        --surface: #f6f8fb;
+        --ink: #16212d;
+        --muted: #5f6f82;
+        --line: #d8e0ea;
+        --accent: #176b87;
+        --accent-strong: #0f5369;
+        --danger: #b64235;
+        --success: #1f7a5d;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #f5f7fa;
-        color: #333;
+        margin: 0;
+        min-height: 100vh;
+        background: #edf2f7;
+        color: var(--ink);
+        font-family: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
       }
-      .game-container {
-        display: flex;
-        flex-direction: column;
+
+      main {
+        width: min(1180px, calc(100vw - 24px));
+        margin: 24px auto;
+      }
+
+      .shell {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
         gap: 20px;
+        padding: 24px;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-bottom: 1px solid var(--line);
+        align-items: start;
       }
-      .controls-panel {
-        display: flex;
-        flex-wrap: wrap; /* Allow items to wrap onto new lines */
-        gap: 10px;
-        align-items: center;
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
       }
-      .graph-display {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        height: 600px;
-        position: relative;
-      }
-      .info-panel {
-        display: flex;
-        gap: 20px;
-      }
-      .game-stats,
-      .high-scores {
-        flex: 1;
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
+
       h1,
       h2,
       h3 {
-        color: #2c3e50;
+        margin: 0;
+        letter-spacing: 0;
       }
-      button {
-        padding: 8px 16px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
+
+      h1 {
+        font-size: clamp(30px, 4vw, 44px);
+        line-height: 1;
       }
-      button:hover {
-        background-color: #2980b9;
+
+      h2 {
+        font-size: 24px;
       }
-      select,
-      input {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+
+      h3 {
+        font-size: 17px;
+        line-height: 1.15;
       }
-      .node {
-        cursor: pointer;
-      }
-      .instructions {
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+
+      .subtitle,
+      .goal,
+      .status,
+      .guide {
+        color: var(--muted);
         line-height: 1.5;
       }
-      .mode-toggle {
+
+      .subtitle {
+        margin: 12px 0 0;
+        max-width: 62ch;
+      }
+
+      .goal {
+        border-left: 4px solid var(--accent);
+        border-radius: 10px;
+        background: #eef7fa;
+        padding: 14px 16px;
+      }
+
+      .goal p,
+      .guide p,
+      .guide ul {
+        margin: 10px 0 0;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(130px, 1fr)) minmax(300px, auto);
+        gap: 14px;
+        padding: 16px 24px;
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+        align-items: end;
+      }
+
+      .control label {
+        display: grid;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      select,
+      input,
+      button {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+        min-height: 44px;
+        padding: 10px 14px;
+      }
+
+      select,
+      input {
+        width: 100%;
+      }
+
+      button {
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease,
+          background 140ms ease;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+
+      button:disabled,
+      select:disabled,
+      input:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .primary {
+        background: var(--accent);
+        border-color: var(--accent-strong);
+        color: #ffffff;
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+
+      .button-row {
         display: flex;
-        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
         gap: 10px;
+        padding: 14px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--line);
       }
-      .timer {
-        font-size: 24px;
-        font-weight: bold;
-        color: #e74c3c;
+
+      .metric {
+        min-width: 125px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 10px 12px;
       }
+
+      .metric-label {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        display: block;
+        margin-top: 4px;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .metric-value.good {
+        color: var(--success);
+      }
+
+      .metric-value.bad {
+        color: var(--danger);
+      }
+
+      .status {
+        margin: 16px 24px 0;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+
+      .status strong,
+      .guide strong {
+        color: var(--ink);
+      }
+
+      .status.good {
+        border-color: rgba(31, 122, 93, 0.28);
+        background: #eef9f4;
+      }
+
+      .status.warn {
+        border-color: rgba(182, 66, 53, 0.28);
+        background: #fff4f2;
+      }
+
+      .status.neutral {
+        border-color: rgba(23, 107, 135, 0.24);
+        background: #f0f8fb;
+      }
+
+      .play-area {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 18px;
+        padding: 18px 24px 24px;
+      }
+
+      .graph-display {
+        min-height: 480px;
+        height: min(64vh, 680px);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff, #f8fafc),
+          repeating-linear-gradient(135deg, rgba(23, 107, 135, 0.035) 0, rgba(23, 107, 135, 0.035) 8px, transparent 8px, transparent 16px);
+        padding: 12px;
+      }
+
+      #graph-svg,
+      #graph-svg svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .guide {
+        align-self: start;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        padding: 16px;
+      }
+
+      .guide ul {
+        padding-left: 18px;
+      }
+
+      .guide li + li {
+        margin-top: 8px;
+      }
+
+      .guide-section {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+
+      .guide-section ul {
+        margin: 10px 0 0;
+        padding-left: 18px;
+      }
+
+      .link {
+        cursor: pointer;
+        stroke: rgba(95, 111, 130, 0.58);
+        stroke-linecap: round;
+        transition:
+          stroke 140ms ease,
+          stroke-width 140ms ease;
+      }
+
+      .link:hover {
+        stroke: var(--accent);
+        stroke-width: 5;
+      }
+
+      .node {
+        cursor: pointer;
+        stroke: rgba(255, 255, 255, 0.95);
+        stroke-width: 2.5;
+        filter: drop-shadow(0 7px 12px rgba(15, 23, 42, 0.14));
+        transition:
+          r 140ms ease,
+          fill 140ms ease,
+          stroke 140ms ease;
+      }
+
+      .eigenvector-value {
+        fill: #ffffff;
+        font-size: 10px;
+        font-weight: 700;
+        pointer-events: none;
+        dominant-baseline: middle;
+      }
+
+      .edge-menu {
+        position: absolute;
+        z-index: 10;
+        display: none;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+        padding: 8px;
+      }
+
       .game-over-modal {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        inset: 0;
         z-index: 1000;
         place-items: center;
+        padding: 20px;
+        background-color: rgba(15, 23, 42, 0.62);
       }
+
       .modal-content {
+        width: min(500px, 100%);
         background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        max-width: 500px;
+        border-radius: 16px;
+        padding: 28px;
         text-align: center;
-      }
-      .eigenvector-value {
-        position: absolute;
-        font-size: 8px;
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 2px 5px;
-        border-radius: 3px;
-        pointer-events: none;
-      }
-      .action-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-      }
-      .edge-menu {
-        position: absolute;
-        background-color: white;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        display: none;
+        box-shadow: var(--shadow);
       }
 
-      /* Media query for smaller screens */
-      @media (max-width: 600px) {
-        .controls-panel {
-          flex-direction: column; /* Stack items vertically on small screens */
-          align-items: flex-start; /* Align items to the start */
+      .modal-content p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      @media (max-width: 960px) {
+        .header,
+        .toolbar,
+        .play-area {
+          grid-template-columns: 1fr;
         }
 
-        .controls-panel select,
-        .controls-panel button {
-          width: 100%; /* Make select and button elements take full width */
-          margin-bottom: 10px; /* Add some space between elements */
+        .button-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        main {
+          width: min(100vw - 16px, 1180px);
+          margin: 8px auto;
         }
 
-        .mode-toggle {
-          width: 100%; /* Ensure the mode toggle takes full width */
+        .header,
+        .toolbar,
+        .summary,
+        .play-area {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .status {
+          margin-left: 16px;
+          margin-right: 16px;
+        }
+
+        .metric {
+          flex: 1 1 120px;
+        }
+
+        .graph-display {
+          min-height: 380px;
         }
       }
     </style>
   </head>
   <body>
-    <h1>eigenMax</h1>
+    <main>
+      <section class="shell">
+        <header class="header">
+          <div>
+            <p class="eyebrow">Spectral Graph Puzzle</p>
+            <h1>eigenMax</h1>
+            <p class="subtitle">
+              Tune a connected graph by adding and removing edges. Your score rises when the selected adjacency eigenvalue beats its starting value.
+            </p>
+          </div>
 
-    <div class="instructions">
-      <h3>How to Play</h3>
-      <p>Optimize the kth largest eigenvalue (λₖ) of the graph's adjacency matrix. You have 20 turns or a limited time to maximize the value.</p>
-      <ul>
-        <li>Click on a node to select it, then click on another node to add or remove an edge.</li>
-        <li>The graph must remain connected at all times.</li>
-        <li>Each eigenvector entry is displayed at its corresponding vertex.</li>
-        <li>Your score is based on how much you improve the target eigenvalue from its initial value.</li>
-      </ul>
-    </div>
+          <div class="goal">
+            <h3>Goal</h3>
+            <p>Maximize λ<sub>k</sub> without disconnecting the graph. Click one vertex, then another, to toggle the edge between them.</p>
+          </div>
+        </header>
 
-    <div class="game-container">
-      <div class="controls-panel">
-        <label for="game-settings">Settings:</label>
-        <select id="difficulty-select">
-          <option value="Easy">Easy (6 vertices)</option>
-          <option value="Medium" selected>Medium (10 vertices)</option>
-          <option value="Hard">Hard (15 vertices)</option>
-          <option value="Extreme">Extreme (20 vertices)</option>
-        </select>
-        <select id="lambda-select">
-          <option value="lam_1" selected>λ<sub>1</sub></option>
-          <option value="lam_2">λ<sub>2</sub></option>
-          <option value="lam_3">λ<sub>3</sub></option>
-          <option value="lam_4">λ<sub>4</sub></option>
-        </select>
-        <div class="mode-toggle">
-          <label for="game-mode">Game Mode:</label>
-          <select id="game-mode">
-            <option value="turns">Turns (20)</option>
-            <option value="time">Timed (3 minutes)</option>
-          </select>
+        <div class="toolbar">
+          <div class="control">
+            <label>
+              Difficulty
+              <select id="difficulty-select">
+                <option value="Easy">Easy (6 vertices)</option>
+                <option value="Medium" selected>Medium (10 vertices)</option>
+                <option value="Hard">Hard (15 vertices)</option>
+                <option value="Extreme">Extreme (20 vertices)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="control">
+            <label>
+              Target
+              <select id="lambda-select">
+                <option value="lam_1" selected>λ1</option>
+                <option value="lam_2">λ2</option>
+                <option value="lam_3">λ3</option>
+                <option value="lam_4">λ4</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="control">
+            <label>
+              Mode
+              <select id="game-mode">
+                <option value="turns">Turns (20)</option>
+                <option value="time">Timed (3 minutes)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button id="start-game" class="primary" type="button" aria-label="Start New Game">New game</button>
+            <button id="undo-move" type="button">Undo</button>
+            <button id="reset-game" type="button">Reset</button>
+            <button id="show-high-scores" type="button" aria-label="Show High Scores">Scores</button>
+            <button id="end-game" class="danger" type="button" aria-label="End Game">End</button>
+          </div>
         </div>
 
-        <button id="start-game" aria-label="Start New Game">Start New Game</button>
-        <button id="show-high-scores" aria-label="Show High Scores">High Scores</button>
-        <button id="end-game" aria-label="End Game">End Game</button>
+        <div class="summary">
+          <div class="metric">
+            <span class="metric-label">Difficulty</span>
+            <span class="metric-value" id="display-difficulty">Medium</span>
+          </div>
 
-        <div id="timer-display" style="display: none">Time: <span class="timer" id="timer">3:00</span></div>
-      </div>
+          <div class="metric">
+            <span class="metric-label">Target</span>
+            <span class="metric-value">λ<span id="target-eigenvalue-index">1</span></span>
+          </div>
 
-      <div class="graph-display" id="graph-display">
-        <div id="graph-svg"></div>
-        <div id="edge-menu" class="edge-menu">
-          <button id="delete-edge">Delete Edge</button>
+          <div class="metric">
+            <span class="metric-label">Initial</span>
+            <span class="metric-value" id="initial-eigenvalue">0.0000</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">Current</span>
+            <span class="metric-value" id="current-eigenvalue">0.0000</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">Improvement</span>
+            <span class="metric-value" id="improvement">0.0000</span>
+          </div>
+
+          <div class="metric" id="turns-metric">
+            <span class="metric-label">Turns Left</span>
+            <span class="metric-value" id="turns-left">20</span>
+          </div>
+
+          <div class="metric" id="timer-display" style="display: none">
+            <span class="metric-label">Time</span>
+            <span class="metric-value" id="timer">3:00</span>
+          </div>
         </div>
-      </div>
 
-      <div class="info-panel">
-        <div class="game-stats">
-          <h3>Game Stats</h3>
-          <p>Difficulty: <span id="display-difficulty">Medium</span></p>
-          <p>
-            Target: λ<sub><span id="target-eigenvalue-index">0</span></sub>
-          </p>
-          <p>Initial Value: <span id="initial-eigenvalue">0.00</span></p>
-          <p>Current Value: <span id="current-eigenvalue">0.00</span></p>
-          <p>Improvement: <span id="improvement">0.00</span></p>
-          <p>Turns Left: <span id="turns-left">20</span></p>
+        <div class="status neutral" id="status-message">Select two vertices to add or remove an edge.</div>
 
-          <!-- <div class="action-buttons">
-            <button id="undo-move">Undo Last Move</button>
-            <button id="reset-game">Reset</button>
-          </div> -->
+        <div class="play-area">
+          <div class="graph-display" id="graph-display">
+            <div id="graph-svg"></div>
+            <div id="edge-menu" class="edge-menu">
+              <button id="delete-edge" class="danger" type="button">Delete edge</button>
+            </div>
+          </div>
+
+          <aside class="guide" aria-label="How to play">
+            <h3>How to play</h3>
+            <ul>
+              <li><strong>Click vertices</strong> to add or remove an edge between them.</li>
+              <li><strong>Drag vertices</strong> if the graph needs breathing room.</li>
+              <li><strong>White labels</strong> are entries of the target eigenvector.</li>
+              <li><strong>Connected only</strong>: moves that split the graph are blocked.</li>
+            </ul>
+
+            <div class="guide-section">
+              <h3>High Scores (<span id="score-difficulty">Medium</span>)</h3>
+              <ul id="high-scores-list">
+                <li>No scores yet</li>
+              </ul>
+            </div>
+          </aside>
         </div>
-
-        <div class="high-scores">
-          <h3>High Scores (<span id="score-difficulty">Medium</span>)</h3>
-          <ul id="high-scores-list">
-            <li>No scores yet</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
     <div class="game-over-modal" id="game-over-modal">
       <div class="modal-content">
@@ -745,10 +1063,12 @@
           this.gameModeSelect = document.getElementById("game-mode");
           this.startButton = document.getElementById("start-game");
           this.showHighScoresButton = document.getElementById("show-high-scores");
-          // this.resetButton = document.getElementById("reset-game");
-          // this.undoButton = document.getElementById("undo-move");
+          this.resetButton = document.getElementById("reset-game");
+          this.undoButton = document.getElementById("undo-move");
           this.timerDisplay = document.getElementById("timer-display");
           this.timerElement = document.getElementById("timer");
+          this.turnsMetric = document.getElementById("turns-metric");
+          this.statusMessage = document.getElementById("status-message");
           this.graphDisplay = document.getElementById("graph-display");
           this.edgeMenu = document.getElementById("edge-menu");
           this.deleteEdgeButton = document.getElementById("delete-edge");
@@ -778,6 +1098,7 @@
           this.playAgainButton = document.getElementById("play-again");
 
           // D3 visualization
+          this.svgRoot = null;
           this.svg = null;
           this.simulation = null;
           this.nodes = [];
@@ -796,7 +1117,7 @@
 
         initializeEventListeners() {
           // Enable game controls
-          // this.resetButton.disabled = false;
+          this.resetButton.disabled = false;
           this.endGameButton.disabled = false;
           this.endGameButton.style.cursor = "pointer";
 
@@ -810,19 +1131,23 @@
           // Show high scores button
           this.showHighScoresButton.addEventListener("click", () => {
             this.updateHighScoresDisplay();
+            this.setStatus("High scores refreshed for the current difficulty.", "neutral");
           });
 
           // Reset game button
-          // this.resetButton.addEventListener("click", () => {
-          //   if (confirm("Are you sure you want to reset the game?")) {
-          //     this.game.reset();
-          //   }
-          // });
+          this.resetButton.addEventListener("click", () => {
+            if (!this.game) return;
+            this.game.reset();
+            this.initializeVisualization();
+            this.setStatus("Graph reset. Start hunting for a better eigenvalue.", "neutral");
+          });
 
           // Undo move button
-          // this.undoButton.addEventListener("click", () => {
-          //   this.game.undoLastMove();
-          // });
+          this.undoButton.addEventListener("click", () => {
+            if (!this.game) return;
+            const undone = this.game.undoLastMove();
+            this.setStatus(undone ? "Last edge change undone." : "There is no move to undo yet.", undone ? "neutral" : "warn");
+          });
 
           // if (this.endGameButton.disabled == false)
           //   throw new Error("End Game button not found in DOM");
@@ -839,7 +1164,8 @@
           // Game mode selection
           this.gameModeSelect.addEventListener("change", () => {
             const mode = this.gameModeSelect.value;
-            this.timerDisplay.style.display = mode === "time" ? "block" : "none";
+            this.timerDisplay.style.display = mode === "time" ? "" : "none";
+            this.turnsMetric.style.display = mode === "time" ? "none" : "";
             if (this.game) {
               this.game.gameMode = mode;
               if (mode === "time") {
@@ -869,12 +1195,18 @@
           this.deleteEdgeButton.addEventListener("click", () => {
             try {
               if (this.clickedEdge) {
-                this.game.toggleEdge(this.clickedEdge.source.id, this.clickedEdge.target.id);
+                const sourceId = typeof this.clickedEdge.source === "object" ? this.clickedEdge.source.id : this.clickedEdge.source;
+                const targetId = typeof this.clickedEdge.target === "object" ? this.clickedEdge.target.id : this.clickedEdge.target;
+                const changed = this.game.toggleEdge(sourceId, targetId);
+                this.setStatus(
+                  changed ? `Deleted edge ${sourceId}-${targetId}.` : "That edge cannot be deleted because the graph must stay connected.",
+                  changed ? "neutral" : "warn"
+                );
                 this.hideEdgeMenu();
               }
             } catch (error) {
               console.error("Error deleting edge:", error);
-              alert("An error occurred while deleting the edge. Please try again.");
+              this.setStatus("An error occurred while deleting the edge. Please try again.", "warn");
             }
           });
 
@@ -909,6 +1241,7 @@
           // Update UI
           this.updateGameUI();
           this.updateHighScoresDisplay();
+          this.setStatus("Select two vertices to add or remove an edge.", "neutral");
         }
 
         updateGameUI(updateGraph = true) {
@@ -919,20 +1252,27 @@
           this.targetEigenvalueIndex.textContent = this.game.targetEigenIndex + 1;
           this.initialEigenvalue.textContent = this.game.initialValue.toFixed(4);
           this.currentEigenvalue.textContent = this.game.currentValue.toFixed(4);
-          this.improvement.textContent = (this.game.currentValue - this.game.initialValue).toFixed(4);
+          const improvement = this.game.currentValue - this.game.initialValue;
+          this.improvement.textContent = improvement.toFixed(4);
+          this.improvement.classList.toggle("good", improvement >= 0);
+          this.improvement.classList.toggle("bad", improvement < 0);
+          this.undoButton.disabled = this.game.actionHistory.length === 0 || this.game.isGameOver;
+          this.resetButton.disabled = this.game.isGameOver;
+          this.endGameButton.disabled = this.game.isGameOver;
 
           // Update mode-specific UI
           if (this.game.gameMode === "turns") {
             this.turnsLeft.textContent = this.game.turnsLeft;
+            this.timerDisplay.style.display = "none";
+            this.turnsMetric.style.display = "";
           } else {
             // Update timer display
             const minutes = Math.floor(this.game.timeRemaining / 60);
             const seconds = this.game.timeRemaining % 60;
             this.timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+            this.timerDisplay.style.display = "";
+            this.turnsMetric.style.display = "none";
           }
-
-          // Update undo button
-          // this.undoButton.disabled = this.game.actionHistory.length === 0;
 
           // Update visualization
           if (updateGraph) {
@@ -940,16 +1280,26 @@
           }
         }
 
+        setStatus(message, type = "neutral") {
+          if (!this.statusMessage) return;
+          this.statusMessage.textContent = message;
+          this.statusMessage.className = `status ${type}`;
+        }
+
+        getGraphDimensions() {
+          const width = Math.max(320, this.graphDisplay.clientWidth - 24);
+          const height = Math.max(320, this.graphDisplay.clientHeight - 24);
+          return { width, height };
+        }
+
         initializeVisualization() {
           // Clear previous visualization
           d3.select("#graph-svg").selectAll("*").remove();
 
-          // Get the dimensions of the .graph-display element
-          const graphDisplayWidth = document.querySelector(".graph-display").clientWidth - 40;
-          const graphDisplayHeight = document.querySelector(".graph-display").clientHeight - 40;
+          const { width: graphDisplayWidth, height: graphDisplayHeight } = this.getGraphDimensions();
 
           // Create SVG element with dynamic width and height
-          this.svg = d3
+          this.svgRoot = d3
             .select("#graph-svg")
             .append("svg")
             .attr("width", graphDisplayWidth)
@@ -959,8 +1309,9 @@
               d3.zoom().on("zoom", (event) => {
                 this.svg.attr("transform", event.transform);
               })
-            )
-            .append("g");
+            );
+
+          this.svg = this.svgRoot.append("g");
 
           // Create D3 force simulation
           this.simulation = d3
@@ -970,18 +1321,18 @@
               d3
                 .forceLink()
                 .id((d) => d.id)
-                .distance(50)
+                .distance(76)
             )
-            .force("charge", d3.forceManyBody().strength(-100))
+            .force("charge", d3.forceManyBody().strength(-170))
             .force("center", d3.forceCenter(graphDisplayWidth / 2, graphDisplayHeight / 2)) // Center the simulation
-            .force("collision", d3.forceCollide().radius(35));
+            .force("collision", d3.forceCollide().radius(42));
 
           // Initial draw
           this.updateVisualization();
 
           // Handle clicks on SVG background (deselect nodes)
-          this.svg.on("click", (event) => {
-            if (event.target.tagName === "svg") {
+          this.svgRoot.on("click", (event) => {
+            if (event.target === this.svgRoot.node()) {
               this.deselectNode();
               this.hideEdgeMenu();
             }
@@ -1007,8 +1358,7 @@
                 enter
                   .append("line")
                   .attr("class", "link")
-                  .attr("stroke", "#999")
-                  .attr("stroke-width", 1)
+                  .attr("stroke-width", 3)
                   .on("click", (event, d) => {
                     event.stopPropagation();
                     this.showEdgeMenu(event, d);
@@ -1026,8 +1376,8 @@
                 enter
                   .append("circle")
                   .attr("class", "node")
-                  .attr("r", 15)
-                  .attr("fill", "#69b3a2")
+                  .attr("r", 18)
+                  .attr("fill", "#176b87")
                   .call(this.drag())
                   .on("click", (event, d) => {
                     event.stopPropagation();
@@ -1063,22 +1413,22 @@
 
           // Update positions on tick
           this.simulation.on("tick", () => {
-            const graphDisplayWidth = document.querySelector(".graph-display").clientWidth - 40;
-            const graphDisplayHeight = document.querySelector(".graph-display").clientHeight - 40;
+            const { width: graphDisplayWidth, height: graphDisplayHeight } = this.getGraphDimensions();
+            const padding = 24;
 
             this.linkElements
-              .attr("x1", (d) => Math.max(10, Math.min(graphDisplayWidth - 10, d.source.x)))
-              .attr("y1", (d) => Math.max(10, Math.min(graphDisplayHeight - 10, d.source.y)))
-              .attr("x2", (d) => Math.max(10, Math.min(graphDisplayWidth - 10, d.target.x)))
-              .attr("y2", (d) => Math.max(10, Math.min(graphDisplayHeight - 10, d.target.y)));
+              .attr("x1", (d) => Math.max(padding, Math.min(graphDisplayWidth - padding, d.source.x)))
+              .attr("y1", (d) => Math.max(padding, Math.min(graphDisplayHeight - padding, d.source.y)))
+              .attr("x2", (d) => Math.max(padding, Math.min(graphDisplayWidth - padding, d.target.x)))
+              .attr("y2", (d) => Math.max(padding, Math.min(graphDisplayHeight - padding, d.target.y)));
 
             this.nodeElements
               .attr("cx", (d) => {
-                d.x = Math.max(10, Math.min(graphDisplayWidth - 10, d.x)); // Constrain x within [10, graphDisplayWidth - 10]
+                d.x = Math.max(padding, Math.min(graphDisplayWidth - padding, d.x));
                 return d.x;
               })
               .attr("cy", (d) => {
-                d.y = Math.max(10, Math.min(graphDisplayHeight - 10, d.y)); // Constrain y within [10, graphDisplayHeight - 10]
+                d.y = Math.max(padding, Math.min(graphDisplayHeight - padding, d.y));
                 return d.y;
               });
 
@@ -1101,7 +1451,25 @@
             this.deselectNode();
           } else {
             // Second node selection - toggle edge
-            this.game.toggleEdge(this.selectedNode.id, node.id);
+            const sourceId = this.selectedNode.id;
+            const targetId = node.id;
+            const hadEdge = this.game.graph.edges.some(
+              (edge) => (edge.source === sourceId && edge.target === targetId) || (edge.source === targetId && edge.target === sourceId)
+            );
+            const before = this.game.currentValue;
+            const changed = this.game.toggleEdge(sourceId, targetId);
+            if (changed) {
+              const delta = this.game.currentValue - before;
+              const direction = delta >= 0 ? "up" : "down";
+              this.setStatus(
+                `${hadEdge ? "Removed" : "Added"} edge ${sourceId}-${targetId}; λ${this.game.targetEigenIndex + 1} moved ${direction} by ${Math.abs(
+                  delta
+                ).toFixed(4)}.`,
+                delta >= 0 ? "good" : "neutral"
+              );
+            } else {
+              this.setStatus("That move is blocked because the graph must remain connected.", "warn");
+            }
             this.deselectNode();
           }
         }
@@ -1112,15 +1480,16 @@
           // Highlight selected node
           this.svg
             .selectAll(".node")
-            .attr("fill", (d) => (d.id === node.id ? "#ff6b6b" : "#69b3a2"))
-            .attr("r", (d) => (d.id === node.id ? 17 : 15));
+            .attr("fill", (d) => (d.id === node.id ? "#b64235" : "#176b87"))
+            .attr("r", (d) => (d.id === node.id ? 22 : 18));
+          this.setStatus(`Vertex ${node.id} selected. Choose another vertex to toggle an edge.`, "neutral");
         }
 
         deselectNode() {
           this.selectedNode = null;
 
           // Reset node styles
-          this.svg.selectAll(".node").attr("fill", "#69b3a2").attr("r", 15);
+          this.svg.selectAll(".node").attr("fill", "#176b87").attr("r", 18);
         }
 
         showEdgeMenu(event, edge) {
@@ -1129,9 +1498,11 @@
 
           // Position and show menu
           const menu = this.edgeMenu;
-          menu.style.left = `${event.pageX}px`;
-          menu.style.top = `${event.pageY}px`;
+          const bounds = this.graphDisplay.getBoundingClientRect();
+          menu.style.left = `${event.clientX - bounds.left}px`;
+          menu.style.top = `${event.clientY - bounds.top}px`;
           menu.style.display = "block";
+          this.setStatus("Edge selected. Use Delete edge to remove it if the graph stays connected.", "neutral");
 
           // Prevent event bubbling
           event.stopPropagation();
