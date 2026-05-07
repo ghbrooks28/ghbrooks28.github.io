@@ -261,6 +261,12 @@ TEMPLATE.innerHTML = `
       padding: 12px;
     }
 
+    #board {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+
     .guide {
       align-self: start;
       border: 1px solid var(--line);
@@ -352,12 +358,14 @@ TEMPLATE.innerHTML = `
     .vertex-circle {
       stroke: rgba(66, 56, 42, 0.18);
       stroke-width: 2;
+      transform-box: fill-box;
+      transform-origin: center;
       transition: transform 120ms ease, stroke 120ms ease, filter 120ms ease;
       filter: drop-shadow(0 7px 12px rgba(15, 23, 42, 0.1));
     }
 
     .vertex:hover .vertex-circle {
-      transform: scale(1.04);
+      transform: scale(1.03);
       stroke: rgba(66, 56, 42, 0.46);
       filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.16));
     }
@@ -427,7 +435,7 @@ TEMPLATE.innerHTML = `
   <section class="shell">
     <header class="header">
       <div>
-        <p class="eyebrow">Closed Modular Coloring</p>
+        <p class="eyebrow">Induced Closed Modular Coloring</p>
         <h2>modGrid</h2>
         <p class="subtitle">
           A grid-labeling puzzle: click vertices to change their labels until every edge has different endpoint badges.
@@ -475,7 +483,7 @@ TEMPLATE.innerHTML = `
     <div class="summary">
       <div class="metric">
         <span class="metric-label">Grid</span>
-        <span class="metric-value" id="pair-value">P_4 × P_5</span>
+        <span class="metric-value" id="pair-value">P<sub>4</sub> × P<sub>5</sub></span>
       </div>
 
       <div class="metric">
@@ -533,8 +541,8 @@ function readAttributeInt(node, name, fallback) {
 function labelPalette(modulus) {
   const palettes = {
     1: ["#fff8ef"],
-    2: ["#fff8ef", "#d96d4f"],
-    3: ["#fff8ef", "#d96d4f", "#2d8c8d"],
+    2: ["#fff8ef", "#757575"],
+    3: ["#fff8ef", "#757575", "#0f5369"],
   };
   return palettes[modulus] || palettes[3];
 }
@@ -756,10 +764,7 @@ function boardLayout(rows, cols, compact = false) {
 }
 
 function boardMarkup(board, induced, conflicts, rows, cols, modulus, options = {}) {
-  const {
-    compact = false,
-    interactive = true,
-  } = options;
+  const { compact = false, interactive = true } = options;
 
   const geometry = boardLayout(rows, cols, compact);
   const labelColors = labelPalette(modulus);
@@ -777,9 +782,7 @@ function boardMarkup(board, induced, conflicts, rows, cols, modulus, options = {
   }
 
   const pointMap = new Map(points.map((point) => [point.index, point]));
-  const conflictEdges = new Set(
-    conflicts.edges.map(([a, b]) => (a < b ? `${a}-${b}` : `${b}-${a}`))
-  );
+  const conflictEdges = new Set(conflicts.edges.map(([a, b]) => (a < b ? `${a}-${b}` : `${b}-${a}`)));
 
   const edgeMarkup = [];
   for (let i = 0; i < rows; i += 1) {
@@ -914,14 +917,7 @@ class ModularGridColoringGame extends HTMLElement {
   }
 
   toggleControls(disabled) {
-    for (const node of [
-      this.rowsSelect,
-      this.colsSelect,
-      this.distanceInput,
-      this.swapButton,
-      this.newButton,
-      this.resetButton,
-    ]) {
+    for (const node of [this.rowsSelect, this.colsSelect, this.distanceInput, this.swapButton, this.newButton, this.resetButton]) {
       node.disabled = disabled;
     }
   }
@@ -1045,13 +1041,7 @@ class ModularGridColoringGame extends HTMLElement {
     for (let attempt = 0; attempt < 24; attempt += 1) {
       const choice = this.solutionPool.length > 1 ? randomInt(this.solutionPool.length) : 0;
       const referenceSolution = this.solutionPool[choice].slice();
-      const puzzle = puzzleFromSolution(
-        referenceSolution,
-        this.rows,
-        this.cols,
-        this.cmc,
-        this.distance
-      );
+      const puzzle = puzzleFromSolution(referenceSolution, this.rows, this.cols, this.cmc, this.distance);
       chosenSolution = referenceSolution;
       chosenPuzzle = puzzle;
       if (encodeBoard(puzzle.board) !== previousCode) {
@@ -1070,7 +1060,7 @@ class ModularGridColoringGame extends HTMLElement {
     const induced = inducedFromBoard(this.board, this.rows, this.cols, this.cmc);
     const conflicts = conflictsFromInduced(induced, this.rows, this.cols, this.cmc);
 
-    this.pairValue.textContent = `P_${this.rows} × P_${this.cols}`;
+    this.pairValue.innerHTML = `P<sub>${this.rows}</sub> × P<sub>${this.cols}</sub>`;
     this.cmcValue.textContent = String(this.cmc);
     this.conflictValue.textContent = String(conflicts.count);
 
@@ -1079,21 +1069,18 @@ class ModularGridColoringGame extends HTMLElement {
   }
 
   renderStatus(conflicts) {
-    const pairLabel = `P_${this.rows} × P_${this.cols}`;
+    const pairLabel = `P<sub>${this.rows}</sub> × P<sub>${this.cols}</sub>`;
 
     if (this.cmc === 1) {
       this.statusBox.className = "status neutral";
       this.statusBox.innerHTML =
-        `<strong>${pairLabel} is a trivial closed modular coloring case.</strong> ` +
-        `There is only one label, so puzzle scrambling is disabled.`;
+        `<strong>${pairLabel} is a trivial closed modular coloring case.</strong> ` + `There is only one label, so puzzle scrambling is disabled.`;
       return;
     }
 
     if (conflicts.proper) {
       this.statusBox.className = "status good";
-      this.statusBox.innerHTML =
-        `<strong>Solved.</strong> ` +
-        `You found a proper induced modular coloring for ${pairLabel}.`;
+      this.statusBox.innerHTML = `<strong>Solved.</strong> ` + `You found a proper induced modular coloring for ${pairLabel}.`;
       return;
     }
 
@@ -1105,15 +1092,10 @@ class ModularGridColoringGame extends HTMLElement {
 
   renderBoard(induced, conflicts) {
     const interactive = this.cmc > 1;
-    const { viewBox, width, height, markup } = boardMarkup(
-      this.board,
-      induced,
-      conflicts,
-      this.rows,
-      this.cols,
-      this.cmc,
-      { compact: false, interactive }
-    );
+    const { viewBox, width, height, markup } = boardMarkup(this.board, induced, conflicts, this.rows, this.cols, this.cmc, {
+      compact: false,
+      interactive,
+    });
 
     this.boardSvg.setAttribute("viewBox", viewBox);
     this.boardSvg.setAttribute("width", String(width));

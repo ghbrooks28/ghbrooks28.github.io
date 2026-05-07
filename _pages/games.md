@@ -7,7 +7,7 @@ nav: true
 nav_order: 5
 ---
 
-Combinatorics-based games I've created with the help of AI-assisted coding tools:
+Combinatorics based games I've created with the help of AI-assisted coding tools:
 
 [modGrid](/game-files/mod-grid/)
 
