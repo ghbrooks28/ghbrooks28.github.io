@@ -15,6 +15,10 @@ nav_order: 3
 
 _2021–Present_
 
+- MATH 344: Applied Linear Algebra (Fall 2026)
+
+- MATH 115: Precalculus Mathematics (Fall 2026)
+
 - MATH 374: Discrete Structures (Spring 2026)
 
 - MATH 141: Calculus I (Spring 2026)
